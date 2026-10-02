@@ -1,801 +1,832 @@
+/* =========================================================
+   HEALTHY HOME - MEDICAL DASHBOARD
+   script.js
+   ========================================================= */
 
-// ==========================================
-// HEALTHY HOME
-// ESP32-S3 HEALTH MONITORING DASHBOARD
-// ==========================================
-
-let patient = {
-  id: "",
-  name: ""
+const state = {
+    connected: false,
+    serialPort: null,
+    reader: null,
+    patientId: "",
+    patientName: "",
+    readings: [],
+    ecgData: [],
+    current: {
+        pulse: "--",
+        spo2: "--",
+        temperature: "--",
+        humidity: "--"
+    }
 };
 
-let currentMood = "Neutral";
+const MAX_ECG_POINTS = 180;
+const MAX_READINGS = 60;
 
-let healthRecords = [];
+const $ = (id) => document.getElementById(id);
 
-let heartRateData = [];
+/* ---------- Safe element helpers ---------- */
 
+function setText(id, value) {
+    const el = $(id);
+    if (el) el.textContent = value;
+}
 
-// ==========================================
-// START
-// ==========================================
+function numberValue(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+}
 
-window.addEventListener("load", function () {
-
-  loadPatient();
-
-  setupECG();
-
-  setupHealthGraph();
-
-  updateClock();
-
-  setInterval(updateClock, 1000);
-
-});
-
-
-// ==========================================
-// PATIENT
-// ==========================================
+/* ---------- Patient ---------- */
 
 function savePatient() {
+    const id = $("patientId")?.value.trim() || "";
+    const name = $("patientName")?.value.trim() || "";
 
-  patient.id =
-    document.getElementById("patientId").value.trim();
+    state.patientId = id;
+    state.patientName = name;
 
-  patient.name =
-    document.getElementById("patientName").value.trim();
+    localStorage.setItem(
+        "healthyHomePatient",
+        JSON.stringify({
+            id,
+            name
+        })
+    );
 
-  localStorage.setItem(
-    "healthyHomePatient",
-    JSON.stringify(patient)
-  );
-
-  const button =
-    document.getElementById("savePatientButton");
-
-  button.textContent = "Saved";
-
-  setTimeout(function () {
-    button.textContent = "Save";
-  }, 1500);
-
+    updatePatientDisplay();
 }
-
 
 function loadPatient() {
+    try {
+        const saved = JSON.parse(
+            localStorage.getItem("healthyHomePatient") || "{}"
+        );
 
-  const saved =
-    localStorage.getItem("healthyHomePatient");
+        state.patientId = saved.id || "";
+        state.patientName = saved.name || "";
 
-  if (!saved) return;
-
-  try {
-
-    patient = JSON.parse(saved);
-
-    document.getElementById("patientId").value =
-      patient.id || "";
-
-    document.getElementById("patientName").value =
-      patient.name || "";
-
-  } catch (error) {
-
-    console.log("Patient data unavailable.");
-
-  }
-
-}
-
-
-// ==========================================
-// MOOD
-// ==========================================
-
-function setMood(mood) {
-
-  const moods = {
-
-    happy: {
-      emoji: "😊",
-      name: "Happy",
-      description: "Patient is feeling positive."
-    },
-
-    neutral: {
-      emoji: "🙂",
-      name: "Neutral",
-      description: "Patient is feeling normal."
-    },
-
-    sad: {
-      emoji: "😔",
-      name: "Sad",
-      description: "Patient may need support."
-    },
-
-    angry: {
-      emoji: "😠",
-      name: "Angry",
-      description: "Patient may need a calm environment."
+        if ($("patientId")) $("patientId").value = state.patientId;
+        if ($("patientName")) $("patientName").value = state.patientName;
+    } catch {
+        state.patientId = "";
+        state.patientName = "";
     }
 
-  };
-
-  const selected =
-    moods[mood] || moods.neutral;
-
-  currentMood = selected.name;
-
-  document.getElementById("moodEmoji").textContent =
-    selected.emoji;
-
-  document.getElementById("moodText").textContent =
-    selected.name;
-
-  document.getElementById("moodDescription").textContent =
-    selected.description;
-
+    updatePatientDisplay();
 }
 
+function updatePatientDisplay() {
+    setText("displayPatientId", state.patientId || "--");
+    setText("displayPatientName", state.patientName || "--");
+}
 
-// ==========================================
-// RECORD
-// ==========================================
+/* ---------- Dashboard values ---------- */
 
-function addHealthRecord() {
+function updateVital(id, value, suffix = "") {
+    const el = $(id);
+    if (!el) return;
 
-  const pulse =
-    document.getElementById("pulse").textContent;
+    if (value === "--" || value === null || value === undefined) {
+        el.textContent = "--";
+        return;
+    }
 
-  const spo2 =
-    document.getElementById("spo2").textContent;
+    el.textContent = `${value}${suffix}`;
+}
 
-  const temperature =
-    document.getElementById("temperature").textContent;
+function updateDashboard(data) {
+    if (data.pulse !== undefined) {
+        const v = numberValue(data.pulse);
+        if (v !== null) state.current.pulse = v;
+    }
 
-  const humidity =
-    document.getElementById("humidity").textContent;
+    if (data.spo2 !== undefined) {
+        const v = numberValue(data.spo2);
+        if (v !== null) state.current.spo2 = v;
+    }
 
+    if (data.temperature !== undefined) {
+        const v = numberValue(data.temperature);
+        if (v !== null) state.current.temperature = v;
+    }
 
-  if (
-    pulse === "--" &&
-    spo2 === "--" &&
-    temperature === "--" &&
-    humidity === "--"
-  ) {
+    if (data.humidity !== undefined) {
+        const v = numberValue(data.humidity);
+        if (v !== null) state.current.humidity = v;
+    }
 
-    alert("No sensor data available.");
+    updateVital("pulse", state.current.pulse, " BPM");
+    updateVital("spo2", state.current.spo2, " %");
+    updateVital("temperature", state.current.temperature, " °C");
+    updateVital("humidity", state.current.humidity, " %");
 
-    return;
+    updateStatus();
+    updateTime();
+}
 
-  }
+/* ---------- Health status ---------- */
 
+function updateStatus() {
+    const pulse = numberValue(state.current.pulse);
+    const spo2 = numberValue(state.current.spo2);
 
-  const now =
-    new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit"
+    let status = "Waiting for data";
+
+    if (pulse !== null && spo2 !== null) {
+        if (spo2 < 90) {
+            status = "Attention";
+        } else if (pulse < 50 || pulse > 120) {
+            status = "Attention";
+        } else {
+            status = "Monitoring";
+        }
+    }
+
+    setText("healthStatus", status);
+    setText("overallStatus", status);
+}
+
+/* ---------- Time ---------- */
+
+function updateTime() {
+    const el = $("lastUpdated");
+    if (!el) return;
+
+    const now = new Date();
+
+    el.textContent = now.toLocaleTimeString("en-IN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
     });
-
-
-  healthRecords.push({
-
-    time: now,
-    pulse: pulse,
-    spo2: spo2,
-    temperature: temperature,
-    humidity: humidity,
-    mood: currentMood
-
-  });
-
-
-  displayRecords();
-
 }
 
+/* ---------- ECG ---------- */
 
-function displayRecords() {
+function addECGPoint(value) {
+    const v = numberValue(value);
 
-  const body =
-    document.getElementById("recordsBody");
+    if (v === null) return;
 
-  body.innerHTML = "";
+    state.ecgData.push(v);
 
+    if (state.ecgData.length > MAX_ECG_POINTS) {
+        state.ecgData.shift();
+    }
 
-  healthRecords
-    .slice()
-    .reverse()
-    .forEach(function (record) {
-
-      const row =
-        document.createElement("tr");
-
-      row.innerHTML = `
-        <td>${record.time}</td>
-        <td>${record.pulse} BPM</td>
-        <td>${record.spo2} %</td>
-        <td>${record.temperature} °C</td>
-        <td>${record.humidity} %</td>
-        <td>${record.mood}</td>
-      `;
-
-      body.appendChild(row);
-
-    });
-
-
-  document.getElementById("recordCount").textContent =
-    healthRecords.length;
-
+    drawECG();
 }
 
+function drawECG() {
+    const canvas = $("ecgCanvas");
 
-// ==========================================
-// REPORT
-// ==========================================
+    if (!canvas) return;
 
-function printReport() {
-
-  const report =
-    window.open("", "_blank");
-
-  if (!report) {
-
-    alert("Please allow pop-ups for the report.");
-
-    return;
-
-  }
-
-
-  report.document.write(`
-
-    <!DOCTYPE html>
-
-    <html>
-
-    <head>
-
-      <title>Healthy Home Report</title>
-
-      <style>
-
-        body {
-          font-family: Arial, sans-serif;
-          padding: 35px;
-          color: #18323d;
-        }
-
-        h1 {
-          color: #087ea4;
-        }
-
-        table {
-          border-collapse: collapse;
-          width: 100%;
-          margin-top: 25px;
-        }
-
-        th, td {
-          border: 1px solid #ccdce1;
-          padding: 10px;
-          text-align: left;
-        }
-
-        th {
-          background: #eef6f8;
-        }
-
-      </style>
-
-    </head>
-
-    <body>
-
-      <h1>Healthy Home Health Report</h1>
-
-      <p>
-        <strong>Patient ID:</strong>
-        ${patient.id || "Not provided"}
-      </p>
-
-      <p>
-        <strong>Patient Name:</strong>
-        ${patient.name || "Not provided"}
-      </p>
-
-      <table>
-
-        <tr>
-          <th>Parameter</th>
-          <th>Reading</th>
-        </tr>
-
-        <tr>
-          <td>Heart Rate</td>
-          <td>${document.getElementById("pulse").textContent} BPM</td>
-        </tr>
-
-        <tr>
-          <td>SpO₂</td>
-          <td>${document.getElementById("spo2").textContent} %</td>
-        </tr>
-
-        <tr>
-          <td>Temperature</td>
-          <td>${document.getElementById("temperature").textContent} °C</td>
-        </tr>
-
-        <tr>
-          <td>Humidity</td>
-          <td>${document.getElementById("humidity").textContent} %</td>
-        </tr>
-
-        <tr>
-          <td>Mood</td>
-          <td>${currentMood}</td>
-        </tr>
-
-      </table>
-
-      <p style="margin-top:25px;">
-        Healthy Home - Health Monitoring System
-      </p>
-
-    </body>
-
-    </html>
-
-  `);
-
-  report.document.close();
-
-  report.focus();
-
-  report.print();
-
-}
-
-
-// ==========================================
-// ECG DISPLAY
-// ==========================================
-
-function setupECG() {
-
-  const canvas =
-    document.getElementById("ecgCanvas");
-
-  if (!canvas) return;
-
-  const ctx =
-    canvas.getContext("2d");
-
-
-  function resize() {
-
-    canvas.width =
-      canvas.clientWidth;
-
-    canvas.height =
-      canvas.clientHeight;
-
-  }
-
-
-  resize();
-
-  window.addEventListener("resize", resize);
-
-
-  let ecgData = [];
-
-  let x = 0;
-
-
-  function draw() {
+    const ctx = canvas.getContext("2d");
 
     const width = canvas.width;
     const height = canvas.height;
 
     ctx.clearRect(0, 0, width, height);
 
-
-    // Grid
-
-    ctx.strokeStyle =
-      "#dcebed";
-
-    ctx.lineWidth = 1;
-
-
-    for (
-      let gridX = 0;
-      gridX < width;
-      gridX += 25
-    ) {
-
-      ctx.beginPath();
-
-      ctx.moveTo(gridX, 0);
-      ctx.lineTo(gridX, height);
-
-      ctx.stroke();
-
-    }
-
-
-    for (
-      let gridY = 0;
-      gridY < height;
-      gridY += 25
-    ) {
-
-      ctx.beginPath();
-
-      ctx.moveTo(0, gridY);
-      ctx.lineTo(width, gridY);
-
-      ctx.stroke();
-
-    }
-
-
-    // No real ECG data yet
+    /* ECG grid */
 
     ctx.beginPath();
 
-    ctx.strokeStyle =
-      "#087ea4";
-
-    ctx.lineWidth = 2;
-
-
-    for (
-      let i = 0;
-      i < width;
-      i += 3
-    ) {
-
-      const y =
-        height / 2 +
-        Math.sin((i + x) * 0.035) * 2;
-
-      if (i === 0) {
-
-        ctx.moveTo(i, y);
-
-      } else {
-
-        ctx.lineTo(i, y);
-
-      }
-
+    for (let x = 0; x <= width; x += 20) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
     }
 
+    for (let y = 0; y <= height; y += 20) {
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+    }
 
+    ctx.strokeStyle = "rgba(0, 180, 220, 0.12)";
+    ctx.lineWidth = 1;
     ctx.stroke();
 
+    if (state.ecgData.length < 2) {
+        return;
+    }
 
-    x += 1;
+    let min = Math.min(...state.ecgData);
+    let max = Math.max(...state.ecgData);
 
+    if (max === min) {
+        max += 1;
+        min -= 1;
+    }
 
-    requestAnimationFrame(draw);
+    const padding = 18;
 
-  }
+    ctx.beginPath();
 
+    state.ecgData.forEach((value, index) => {
+        const x =
+            (index / (MAX_ECG_POINTS - 1)) *
+            (width - padding * 2) +
+            padding;
 
-  draw();
+        const y =
+            height -
+            ((value - min) / (max - min)) *
+                (height - padding * 2) -
+            padding;
 
+        if (index === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
+
+    ctx.strokeStyle = "#16d9ff";
+    ctx.lineWidth = 2;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.stroke();
 }
 
+/* ---------- Records ---------- */
 
-// ==========================================
-// HEART RATE GRAPH
-// ==========================================
+function addRecord() {
+    const record = {
+        time: new Date().toLocaleString("en-IN"),
+        patientId: state.patientId,
+        patientName: state.patientName,
+        pulse: state.current.pulse,
+        spo2: state.current.spo2,
+        temperature: state.current.temperature,
+        humidity: state.current.humidity
+    };
 
-function setupHealthGraph() {
+    state.readings.unshift(record);
 
-  const canvas =
-    document.getElementById("healthChart");
+    if (state.readings.length > MAX_READINGS) {
+        state.readings.pop();
+    }
 
-  if (!canvas) return;
+    localStorage.setItem(
+        "healthyHomeRecords",
+        JSON.stringify(state.readings)
+    );
 
-  const ctx =
-    canvas.getContext("2d");
+    renderRecords();
+}
 
+function loadRecords() {
+    try {
+        state.readings = JSON.parse(
+            localStorage.getItem("healthyHomeRecords") || "[]"
+        );
 
-  function resize() {
+        if (!Array.isArray(state.readings)) {
+            state.readings = [];
+        }
+    } catch {
+        state.readings = [];
+    }
 
-    canvas.width =
-      canvas.clientWidth;
+    renderRecords();
+}
 
-    canvas.height =
-      canvas.clientHeight;
+function renderRecords() {
+    const tbody = $("recordsBody");
 
-  }
+    if (!tbody) return;
 
+    tbody.innerHTML = "";
 
-  resize();
+    state.readings.forEach((record) => {
+        const tr = document.createElement("tr");
 
-  window.addEventListener("resize", resize);
+        tr.innerHTML = `
+            <td>${escapeHTML(record.time)}</td>
+            <td>${escapeHTML(record.patientId || "--")}</td>
+            <td>${escapeHTML(record.patientName || "--")}</td>
+            <td>${escapeHTML(record.pulse)} BPM</td>
+            <td>${escapeHTML(record.spo2)} %</td>
+            <td>${escapeHTML(record.temperature)} °C</td>
+            <td>${escapeHTML(record.humidity)} %</td>
+        `;
 
+        tbody.appendChild(tr);
+    });
 
-  function draw() {
+    setText("recordCount", state.readings.length);
+}
+
+function clearRecords() {
+    state.readings = [];
+
+    localStorage.removeItem("healthyHomeRecords");
+
+    renderRecords();
+}
+
+/* ---------- Serial / ESP32 ---------- */
+
+async function connectESP32() {
+    if (!("serial" in navigator)) {
+        alert(
+            "Web Serial is not supported in this browser. Use Chrome or Edge on a supported device."
+        );
+        return;
+    }
+
+    try {
+        const port = await navigator.serial.requestPort();
+
+        await port.open({
+            baudRate: 115200
+        });
+
+        state.serialPort = port;
+        state.connected = true;
+
+        updateConnectionUI(true);
+
+        readSerialData();
+    } catch (error) {
+        console.error("ESP32 connection error:", error);
+        updateConnectionUI(false);
+    }
+}
+
+async function disconnectESP32() {
+    try {
+        if (state.reader) {
+            await state.reader.cancel();
+            state.reader = null;
+        }
+
+        if (state.serialPort) {
+            await state.serialPort.close();
+        }
+    } catch (error) {
+        console.error(error);
+    }
+
+    state.serialPort = null;
+    state.connected = false;
+
+    updateConnectionUI(false);
+}
+
+function updateConnectionUI(connected) {
+    setText(
+        "connectionStatus",
+        connected ? "ESP32 Connected" : "ESP32 Disconnected"
+    );
+
+    const indicator = $("connectionIndicator");
+
+    if (indicator) {
+        indicator.classList.toggle("connected", connected);
+    }
+}
+
+/* ---------- Serial parser ---------- */
+
+async function readSerialData() {
+    if (!state.serialPort) return;
+
+    const decoder = new TextDecoder();
+
+    let buffer = "";
+
+    try {
+        while (state.serialPort.readable && state.connected) {
+            state.reader = state.serialPort.readable.getReader();
+
+            try {
+                while (true) {
+                    const { value, done } =
+                        await state.reader.read();
+
+                    if (done) break;
+
+                    if (value) {
+                        buffer += decoder.decode(value, {
+                            stream: true
+                        });
+
+                        const lines = buffer.split(/\r?\n/);
+
+                        buffer = lines.pop() || "";
+
+                        for (const line of lines) {
+                            parseESP32Line(line.trim());
+                        }
+                    }
+                }
+            } finally {
+                state.reader.releaseLock();
+                state.reader = null;
+            }
+        }
+    } catch (error) {
+        console.error("Serial read error:", error);
+        state.connected = false;
+        updateConnectionUI(false);
+    }
+}
+
+function parseESP32Line(line) {
+    if (!line) return;
+
+    console.log("ESP32:", line);
+
+    /*
+       Supported formats:
+
+       JSON:
+       {"pulse":78,"spo2":98,"temperature":27.4,"humidity":61,"ecg":512}
+
+       CSV:
+       78,98,27.4,61,512
+
+       Key/value:
+       pulse=78,spo2=98,temp=27.4,humidity=61,ecg=512
+    */
+
+    let data = null;
+
+    /* JSON */
+
+    if (line.startsWith("{") && line.endsWith("}")) {
+        try {
+            data = JSON.parse(line);
+        } catch {
+            data = null;
+        }
+    }
+
+    /* CSV */
+
+    if (!data && line.includes(",")) {
+        const parts = line.split(",");
+
+        if (
+            parts.length >= 2 &&
+            parts.every((p) => p.trim() !== "")
+        ) {
+            const values = parts.map((p) => numberValue(p));
+
+            if (values.every((v) => v !== null)) {
+                data = {
+                    pulse: values[0],
+                    spo2: values[1],
+                    temperature: values[2],
+                    humidity: values[3],
+                    ecg: values[4]
+                };
+            }
+        }
+    }
+
+    /* Key/value */
+
+    if (!data && line.includes("=")) {
+        data = {};
+
+        line.split(",").forEach((part) => {
+            const [key, value] = part.split("=");
+
+            if (!key || value === undefined) return;
+
+            const cleanKey = key.trim().toLowerCase();
+
+            const cleanValue = value.trim();
+
+            if (
+                cleanKey === "pulse" ||
+                cleanKey === "bpm" ||
+                cleanKey === "heartrate" ||
+                cleanKey === "heart_rate"
+            ) {
+                data.pulse = cleanValue;
+            }
+
+            if (
+                cleanKey === "spo2" ||
+                cleanKey === "oxygen" ||
+                cleanKey === "o2"
+            ) {
+                data.spo2 = cleanValue;
+            }
+
+            if (
+                cleanKey === "temperature" ||
+                cleanKey === "temp"
+            ) {
+                data.temperature = cleanValue;
+            }
+
+            if (cleanKey === "humidity") {
+                data.humidity = cleanValue;
+            }
+
+            if (cleanKey === "ecg") {
+                data.ecg = cleanValue;
+            }
+        });
+    }
+
+    if (!data) return;
+
+    normalizeData(data);
+}
+
+/* ---------- Normalize sensor names ---------- */
+
+function normalizeData(data) {
+    const normalized = {};
+
+    normalized.pulse =
+        data.pulse ??
+        data.bpm ??
+        data.heartRate ??
+        data.heart_rate;
+
+    normalized.spo2 =
+        data.spo2 ??
+        data.SpO2 ??
+        data.oxygen ??
+        data.o2;
+
+    normalized.temperature =
+        data.temperature ??
+        data.temp ??
+        data.tempC;
+
+    normalized.humidity =
+        data.humidity ??
+        data.hum;
+
+    normalized.ecg =
+        data.ecg ??
+        data.ECG ??
+        data.adc;
+
+    updateDashboard(normalized);
+
+    if (normalized.ecg !== undefined) {
+        addECGPoint(normalized.ecg);
+    }
+}
+
+/* ---------- Report ---------- */
+
+function generateReport() {
+    const patientName =
+        state.patientName || "Patient";
+
+    const patientId =
+        state.patientId || "--";
+
+    const reportDate =
+        new Date().toLocaleString("en-IN");
+
+    const reportHTML = `
+        <div class="report-header">
+            <h2>Healthy Home Health Report</h2>
+            <p>${escapeHTML(reportDate)}</p>
+        </div>
+
+        <div class="report-patient">
+            <p><strong>Patient ID:</strong> ${escapeHTML(patientId)}</p>
+            <p><strong>Patient Name:</strong> ${escapeHTML(patientName)}</p>
+        </div>
+
+        <div class="report-vitals">
+            <p><strong>Pulse Rate:</strong> ${escapeHTML(state.current.pulse)} BPM</p>
+            <p><strong>SpO₂:</strong> ${escapeHTML(state.current.spo2)} %</p>
+            <p><strong>Temperature:</strong> ${escapeHTML(state.current.temperature)} °C</p>
+            <p><strong>Humidity:</strong> ${escapeHTML(state.current.humidity)} %</p>
+        </div>
+
+        <div class="report-ecg">
+            <h3>ECG Recording</h3>
+            <canvas id="reportECGCanvas" width="900" height="280"></canvas>
+        </div>
+    `;
+
+    const reportContainer = $("reportContent");
+
+    if (reportContainer) {
+        reportContainer.innerHTML = reportHTML;
+
+        drawReportECG();
+    }
+
+    const reportSection = $("reportSection");
+
+    if (reportSection) {
+        reportSection.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    }
+}
+
+function drawReportECG() {
+    const canvas = $("reportECGCanvas");
+
+    if (!canvas || state.ecgData.length < 2) return;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
 
     const width = canvas.width;
     const height = canvas.height;
 
-    ctx.clearRect(0, 0, width, height);
+    let min = Math.min(...state.ecgData);
+    let max = Math.max(...state.ecgData);
 
-
-    ctx.strokeStyle =
-      "#dcebed";
-
-    ctx.lineWidth = 1;
-
-
-    for (
-      let y = 0;
-      y <= height;
-      y += 30
-    ) {
-
-      ctx.beginPath();
-
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
-
-      ctx.stroke();
-
+    if (max === min) {
+        max += 1;
+        min -= 1;
     }
 
+    /* Grid */
 
-    if (heartRateData.length > 1) {
+    ctx.beginPath();
 
-      ctx.beginPath();
+    for (let x = 0; x < width; x += 20) {
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+    }
 
-      ctx.strokeStyle =
-        "#087ea4";
+    for (let y = 0; y < height; y += 20) {
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+    }
 
-      ctx.lineWidth = 2;
+    ctx.strokeStyle = "rgba(0, 180, 220, 0.12)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
 
+    /* ECG */
 
-      heartRateData.forEach(function(value, index) {
+    ctx.beginPath();
 
-        const px =
-          (index /
-            (heartRateData.length - 1)) *
-          width;
+    state.ecgData.forEach((value, index) => {
+        const x =
+            (index / (state.ecgData.length - 1)) *
+            width;
 
-        const py =
-          height -
-          ((value - 40) / 120) *
-          height;
-
+        const y =
+            height -
+            ((value - min) / (max - min)) *
+                (height - 20) -
+            10;
 
         if (index === 0) {
-
-          ctx.moveTo(px, py);
-
+            ctx.moveTo(x, y);
         } else {
-
-          ctx.lineTo(px, py);
-
+            ctx.lineTo(x, y);
         }
+    });
 
-      });
+    ctx.strokeStyle = "#16d9ff";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+}
 
+/* ---------- Print report ---------- */
 
-      ctx.stroke();
+function printReport() {
+    window.print();
+}
 
-      document.getElementById("graphMessage")
-        .style.display = "none";
+/* ---------- HTML safety ---------- */
 
+function escapeHTML(value) {
+    if (value === null || value === undefined) {
+        return "--";
     }
 
-    requestAnimationFrame(draw);
-
-  }
-
-
-  draw();
-
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
 
+/* ---------- Buttons ---------- */
 
-// ==========================================
-// ADD REAL HEART RATE TO GRAPH
-// ==========================================
+function setupButtons() {
+    const connectBtn = $("connectESP32");
 
-function updateHeartRate(value) {
+    if (connectBtn) {
+        connectBtn.addEventListener(
+            "click",
+            connectESP32
+        );
+    }
 
-  if (
-    typeof value !== "number" ||
-    isNaN(value)
-  ) {
-    return;
-  }
+    const disconnectBtn = $("disconnectESP32");
 
+    if (disconnectBtn) {
+        disconnectBtn.addEventListener(
+            "click",
+            disconnectESP32
+        );
+    }
 
-  document.getElementById("pulse").textContent =
-    Math.round(value);
+    const patientBtn = $("savePatient");
 
-  document.getElementById("pulseStatus").textContent =
-    "Sensor connected";
+    if (patientBtn) {
+        patientBtn.addEventListener(
+            "click",
+            savePatient
+        );
+    }
 
+    const recordBtn = $("saveRecord");
 
-  heartRateData.push(value);
+    if (recordBtn) {
+        recordBtn.addEventListener(
+            "click",
+            addRecord
+        );
+    }
 
+    const clearBtn = $("clearRecords");
 
-  if (heartRateData.length > 60) {
-    heartRateData.shift();
-  }
+    if (clearBtn) {
+        clearBtn.addEventListener(
+            "click",
+            clearRecords
+        );
+    }
 
+    const reportBtn = $("generateReport");
+
+    if (reportBtn) {
+        reportBtn.addEventListener(
+            "click",
+            generateReport
+        );
+    }
+
+    const printBtn = $("printReport");
+
+    if (printBtn) {
+        printBtn.addEventListener(
+            "click",
+            printReport
+        );
+    }
 }
 
-
-// ==========================================
-// REAL SENSOR DATA FUNCTIONS
-// ==========================================
-
-function updateSensorData(data) {
-
-  if (!data) return;
-
-
-  if (data.pulse !== undefined) {
-
-    updateHeartRate(
-      Number(data.pulse)
-    );
-
-  }
-
-
-  if (data.spo2 !== undefined) {
-
-    document.getElementById("spo2").textContent =
-      Number(data.spo2).toFixed(0);
-
-    document.getElementById("spo2Status").textContent =
-      "Sensor connected";
-
-  }
-
-
-  if (data.temperature !== undefined) {
-
-    document.getElementById("temperature").textContent =
-      Number(data.temperature).toFixed(1);
-
-    document.getElementById("temperatureStatus").textContent =
-      "Sensor connected";
-
-  }
-
-
-  if (data.humidity !== undefined) {
-
-    document.getElementById("humidity").textContent =
-      Number(data.humidity).toFixed(0);
-
-    document.getElementById("humidityStatus").textContent =
-      "Sensor connected";
-
-  }
-
-}
-
-
-// ==========================================
-// ESP32 CONNECTION
-// ==========================================
-
-function setESP32Connected(connected) {
-
-  const dot =
-    document.getElementById("connectionDot");
-
-  const text =
-    document.getElementById("connectionText");
-
-
-  if (connected) {
-
-    dot.classList.add("online");
-
-    text.textContent =
-      "ESP32-S3 Connected";
-
-    setStatus("espStatus", "Connected");
-
-  } else {
-
-    dot.classList.remove("online");
-
-    text.textContent =
-      "ESP32-S3 Not Connected";
-
-    setStatus("espStatus", "Not Connected");
-
-  }
-
-}
-
-
-function setStatus(id, text) {
-
-  const element =
-    document.getElementById(id);
-
-  if (element) {
-    element.textContent = text;
-  }
-
-}
-
-
-// ==========================================
-// ECG SENSOR STATUS
-// ==========================================
-
-function setECGConnected(connected) {
-
-  const dot =
-    document.getElementById("ecgDot");
-
-  const text =
-    document.getElementById("ecgStatus");
-
-
-  if (connected) {
-
-    dot.classList.add("active");
-
-    text.textContent =
-      "Connected";
-
-    setStatus(
-      "ad8232Status",
-      "Connected"
-    );
-
-  } else {
-
-    dot.classList.remove("active");
-
-    text.textContent =
-      "Not connected";
-
-    setStatus(
-      "ad8232Status",
-      "Not Connected"
-    );
-
-  }
-
-}
-
-
-// ==========================================
-// CLOCK
-// ==========================================
-
-function updateClock() {
-
-  const time =
-    new Date().toLocaleTimeString();
-
-  const element =
-    document.getElementById("graphTime");
-
-  if (element) {
-    element.textContent = time;
-  }
-
-}
+/* ---------- Start ---------- */
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadPatient();
+    loadRecords();
+    setupButtons();
+
+    updateDashboard({
+        pulse: "--",
+        spo2: "--",
+        temperature: "--",
+        humidity: "--"
+    });
+
+    drawECG();
+
+    if ("serial" in navigator) {
+        navigator.serial.addEventListener(
+            "disconnect",
+            () => {
+                state.connected = false;
+                updateConnectionUI(false);
+            }
+        );
+    }
+});
+
+/* ---------- Global access ---------- */
+
+window.HealthyHome = {
+    connectESP32,
+    disconnectESP32,
+    savePatient,
+    addRecord,
+    clearRecords,
+    generateReport,
+    printReport,
+    addECGPoint,
+    updateDashboard
+};
