@@ -1,777 +1,483 @@
-/* =========================================================
-   HEALTHY HOME — BIOMEDICAL DASHBOARD THEME
-   Complete replacement for style.css
-   ========================================================= */
-
-:root {
-    --navy: #102331;
-    --navy-2: #172f40;
-    --blue: #23658a;
-    --blue-light: #e8f1f5;
-
-    --green: #2d765c;
-    --red: #a94b42;
-    --orange: #9a6a32;
-
-    --text: #1d252b;
-    --muted: #68747b;
-
-    --border: #cfd6da;
-    --border-dark: #aeb8bd;
-
-    --bg: #edf0f1;
-    --panel: #ffffff;
-    --panel-soft: #f6f7f7;
-
-    --shadow: 0 1px 3px rgba(20, 35, 45, 0.08);
-}
-
-
-/* =========================
-   RESET
-   ========================= */
-
 * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
 }
 
-html {
-    scroll-behavior: smooth;
+:root {
+    --navy: #142b3a;
+    --navy2: #1d3d50;
+    --blue: #2e6f91;
+    --bg: #e9edef;
+    --white: #ffffff;
+    --line: #c9d1d5;
+    --text: #26343d;
+    --muted: #68767e;
+    --green: #3c795f;
+    --red: #a14e45;
 }
 
 body {
-    font-family: Arial, Helvetica, sans-serif;
     background: var(--bg);
     color: var(--text);
-    line-height: 1.5;
+    font-family: Arial, Helvetica, sans-serif;
 }
-
-
-/* =========================
-   GLOBAL
-   ========================= */
-
-button,
-input,
-select,
-textarea {
-    font: inherit;
-}
-
-button {
-    cursor: pointer;
-}
-
-a {
-    color: inherit;
-    text-decoration: none;
-}
-
-
-/* =========================
-   HEADER
-   ========================= */
 
 header {
+    min-height: 76px;
     background: var(--navy);
     color: white;
     border-bottom: 4px solid var(--blue);
-}
-
-.topbar,
-.navbar,
-.header-content {
-    max-width: 1400px;
-    margin: auto;
-}
-
-header h1 {
-    letter-spacing: 1px;
-}
-
-
-/* =========================
-   NAVIGATION
-   ========================= */
-
-nav {
-    background: var(--navy-2);
-    border-bottom: 1px solid #38505f;
-}
-
-nav a {
-    color: #d9e1e5;
-    font-size: 13px;
-    padding: 12px 16px;
-    display: inline-block;
-}
-
-nav a:hover {
-    background: #234456;
-    color: white;
-}
-
-
-/* =========================
-   MAIN CONTAINER
-   ========================= */
-
-main,
-.container,
-.dashboard,
-.content {
-    width: 94%;
-    max-width: 1400px;
-    margin: 24px auto;
-}
-
-
-/* =========================
-   GENERAL SECTIONS
-   ========================= */
-
-section,
-.card,
-.panel {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    box-shadow: var(--shadow);
-}
-
-section {
-    margin-bottom: 20px;
-}
-
-
-/* =========================
-   SECTION HEADINGS
-   ========================= */
-
-.section-title,
-.section-header,
-.card-header {
-    background: var(--panel-soft);
-    border-bottom: 1px solid var(--border);
-    padding: 13px 17px;
-}
-
-.section-title {
-    color: var(--navy);
-    font-size: 13px;
-    font-weight: 700;
-    letter-spacing: 0.7px;
-    text-transform: uppercase;
-}
-
-.section-header {
+    padding: 14px 4%;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-.section-header h2,
-.card-header h2 {
-    color: var(--navy);
-    font-size: 15px;
-    font-weight: 700;
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 13px;
 }
 
-.section-header p {
-    color: var(--muted);
-    font-size: 11px;
+.brand-mark {
+    width: 42px;
+    height: 42px;
+    border: 1px solid #8ca7b5;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.brand h1 {
+    font-size: 21px;
+    letter-spacing: 1.5px;
+}
+
+.brand p {
+    color: #b9c9d1;
+    font-size: 9px;
+    letter-spacing: 1px;
     margin-top: 3px;
 }
 
-
-/* =========================
-   HERO / INTRO
-   ========================= */
-
-.hero,
-.hero-section {
-    background: var(--navy);
-    color: white;
-    border-radius: 3px;
-    border: 1px solid #1b3a4c;
-    box-shadow: var(--shadow);
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    font-weight: bold;
 }
 
-.hero h1,
-.hero h2,
-.hero-section h1,
-.hero-section h2 {
-    color: white;
+#statusDot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #89949a;
 }
 
-.hero p,
-.hero-section p {
-    color: #c8d5dc;
+main {
+    width: 94%;
+    max-width: 1400px;
+    margin: 24px auto 35px;
 }
 
-
-/* =========================
-   PATIENT INFORMATION
-   ========================= */
-
-.patient-card,
-.patient-info {
-    overflow: hidden;
+.panel,
+.control-panel,
+.vital {
+    background: var(--white);
+    border: 1px solid var(--line);
+    box-shadow: 0 1px 3px rgba(20,40,50,.07);
 }
 
-.patient-grid,
-.patient-form,
-.form-grid {
-    padding: 18px;
+.panel {
+    margin-bottom: 18px;
+}
+
+.panel-title {
+    background: #f4f6f7;
+    border-bottom: 1px solid var(--line);
+    padding: 12px 16px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: .8px;
+    color: var(--navy);
+}
+
+.patient-grid {
+    padding: 17px;
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
+    grid-template-columns: 1fr 1fr 120px 180px;
+    gap: 14px;
+    align-items: end;
 }
 
 label {
-    color: #53616a;
-    font-size: 11px;
-    font-weight: 700;
+    display: block;
+    color: #59676e;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: .4px;
 }
 
 input,
-select,
-textarea {
+select {
     width: 100%;
+    height: 39px;
     margin-top: 6px;
-    padding: 9px 10px;
-
+    padding: 0 10px;
     background: white;
-    color: var(--text);
-
-    border: 1px solid var(--border-dark);
+    border: 1px solid #aeb9be;
     border-radius: 2px;
-
+    color: var(--text);
     outline: none;
 }
 
 input:focus,
-select:focus,
-textarea:focus {
+select:focus {
     border-color: var(--blue);
-    box-shadow: 0 0 0 2px rgba(35, 101, 138, 0.08);
 }
 
-
-/* =========================
-   BUTTONS
-   ========================= */
-
 button {
-    border: 1px solid #29495a;
+    min-height: 39px;
+    padding: 8px 15px;
+    border: 1px solid #173342;
     border-radius: 2px;
-
     background: var(--navy);
     color: white;
-
-    min-height: 38px;
-    padding: 8px 15px;
-
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: .4px;
+    cursor: pointer;
 }
 
 button:hover {
-    background: var(--navy-2);
+    background: var(--navy2);
 }
 
 button:disabled {
-    background: #aeb6ba;
-    border-color: #aeb6ba;
+    background: #aeb7bb;
+    border-color: #aeb7bb;
     cursor: not-allowed;
 }
 
-
-/* =========================
-   VITAL CARDS
-   ========================= */
-
-.vitals,
-.vital-grid,
-.metrics {
+.vitals {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4,1fr);
     gap: 14px;
+    margin-bottom: 18px;
 }
 
-.vital-card,
-.metric-card {
+.vital {
     position: relative;
-
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-
-    padding: 17px 18px;
-
-    box-shadow: var(--shadow);
+    padding: 16px 18px;
+    min-height: 145px;
 }
 
-.vital-card::before,
-.metric-card::before {
+.vital::before {
     content: "";
     position: absolute;
-    top: 0;
     left: 0;
-
+    top: 0;
+    bottom: 0;
     width: 4px;
-    height: 100%;
-
     background: var(--blue);
 }
 
-.vital-label,
-.metric-label {
+.sensor-tag {
+    display: inline-block;
+    border: 1px solid #bdc8cd;
+    padding: 3px 6px;
+    color: var(--muted);
+    font-size: 8px;
+    font-weight: bold;
+    letter-spacing: .5px;
+}
+
+.vital p {
+    margin-top: 14px;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: .7px;
+}
+
+.vital strong {
+    color: var(--navy);
+    font-size: 30px;
+    display: inline-block;
+    margin-top: 6px;
+}
+
+.vital > span {
     color: var(--muted);
     font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.7px;
 }
 
-.vital-value,
-.metric-value {
-    color: var(--navy);
-
-    margin-top: 9px;
-
-    font-size: 30px;
-    line-height: 1;
-
-    font-weight: 700;
-}
-
-.vital-value small,
-.metric-value small {
-    color: var(--muted);
-    font-size: 11px;
-    font-weight: 400;
-}
-
-.sensor-name {
-    color: #7b858a;
-    font-size: 9px;
-    margin-top: 9px;
-}
-
-
-/* =========================
-   ECG AREA
-   ========================= */
-
-.ecg-section {
-    overflow: hidden;
-}
-
-.ecg-container,
-.ecg-display,
-.graph-container {
-    position: relative;
-
-    min-height: 350px;
-    padding: 15px;
-
-    background-color: #fafbf9;
-
-    /*
-       Subtle ECG paper grid
-    */
-    background-image:
-        linear-gradient(
-            rgba(80, 100, 105, 0.10) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            90deg,
-            rgba(80, 100, 105, 0.10) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            rgba(80, 100, 105, 0.045) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            90deg,
-            rgba(80, 100, 105, 0.045) 1px,
-            transparent 1px
-        );
-
-    background-size:
-        50px 50px,
-        50px 50px,
-        10px 10px,
-        10px 10px;
-
-    border-bottom: 1px solid var(--border);
-}
-
-canvas {
+.vital small {
     display: block;
-    width: 100%;
-    height: 100%;
+    color: #879197;
+    font-size: 9px;
+    margin-top: 8px;
 }
 
+.panel-heading {
+    padding: 14px 17px;
+    background: #f4f6f7;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-/* =========================
-   ECG INFORMATION
-   ========================= */
+.panel-heading h2 {
+    color: var(--navy);
+    font-size: 14px;
+}
 
-.ecg-info {
+.panel-heading p {
+    color: var(--muted);
+    font-size: 9px;
+    margin-top: 3px;
+    letter-spacing: .3px;
+}
+
+.technical {
     display: flex;
     gap: 20px;
+    color: var(--muted);
+    font-size: 9px;
+}
 
+.technical b {
+    color: var(--navy);
+}
+
+.ecg-screen {
+    position: relative;
+    height: 390px;
+    padding: 15px;
+    background-color: #fbfcfa;
+    background-image:
+        linear-gradient(rgba(73,91,96,.11) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(73,91,96,.11) 1px,transparent 1px),
+        linear-gradient(rgba(73,91,96,.045) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(73,91,96,.045) 1px,transparent 1px);
+    background-size: 50px 50px,50px 50px,10px 10px,10px 10px;
+}
+
+#ecgCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.lead-label {
+    position: absolute;
+    top: 18px;
+    left: 20px;
+    font-size: 9px;
+    color: #657279;
+    background: rgba(255,255,255,.8);
+    padding: 3px 6px;
+}
+
+.control-panel {
+    padding: 14px;
+    margin-bottom: 18px;
+    display: flex;
+    gap: 11px;
+    align-items: end;
+}
+
+.control-panel > div {
+    width: 160px;
+}
+
+.records {
+    overflow: hidden;
+}
+
+#recordCount {
     color: var(--muted);
     font-size: 10px;
 }
 
-.ecg-info b {
-    color: var(--navy);
-}
-
-
-/* =========================
-   CONTROLS
-   ========================= */
-
-.controls,
-.control-panel,
-.action-bar {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 3px;
-
-    padding: 15px;
-
-    display: flex;
-    align-items: flex-end;
-    gap: 12px;
-
-    box-shadow: var(--shadow);
-}
-
-.controls label {
-    min-width: 150px;
-}
-
-.controls select {
-    margin-top: 5px;
-}
-
-
-/* =========================
-   RECORDS TABLE
-   ========================= */
-
-.records-section {
-    overflow: hidden;
-}
-
-.table-wrapper {
-    width: 100%;
+.table-wrap {
     overflow-x: auto;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    background: white;
-}
-
-thead {
-    background: var(--navy);
-    color: white;
 }
 
 th {
+    background: var(--navy);
+    color: white;
     padding: 11px 13px;
-
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-
     text-align: left;
-    white-space: nowrap;
+    font-size: 9px;
+    letter-spacing: .5px;
 }
 
 td {
     padding: 11px 13px;
-
-    border-bottom: 1px solid #e0e3e5;
-
-    font-size: 11px;
-    color: #303b41;
-
-    white-space: nowrap;
+    border-bottom: 1px solid #dde2e4;
+    font-size: 10px;
 }
 
 tbody tr:hover {
-    background: #f5f7f8;
+    background: #f4f7f8;
 }
 
-
-/* =========================
-   STATUS
-   ========================= */
-
-#statusDot {
-    width: 9px;
-    height: 9px;
-
-    display: inline-block;
-
-    border-radius: 50%;
-    background: #879096;
+.wiring-grid {
+    padding: 18px;
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    gap: 14px;
 }
 
-.connection {
+.wire-card {
+    border: 1px solid var(--line);
+    background: #fbfcfc;
+}
+
+.wire-head {
+    padding: 11px 13px;
+    background: var(--navy);
+    color: white;
     display: flex;
+    gap: 12px;
     align-items: center;
-    gap: 8px;
-
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
+    font-size: 11px;
 }
 
+.wire-head b {
+    color: #a9c5d2;
+}
 
-/* =========================
-   STATUS LABELS
-   ========================= */
-
-.status,
-.badge {
-    display: inline-block;
-
-    padding: 4px 8px;
-
-    border: 1px solid var(--border);
-    border-radius: 2px;
-
-    background: #f4f6f6;
-
-    color: #4e5b62;
-
+.wire-line {
+    display: grid;
+    grid-template-columns: 1fr 30px 1.4fr;
+    align-items: center;
+    padding: 9px 12px;
+    border-bottom: 1px solid #e0e4e6;
     font-size: 9px;
-    font-weight: 700;
 }
 
+.wire-line:last-child {
+    border-bottom: 0;
+}
 
-/* =========================
-   NOTICE
-   ========================= */
+.wire-line span:first-child {
+    font-weight: bold;
+    color: #53636c;
+}
 
-.notice,
-.disclaimer {
-    background: #f7f5f0;
+.wire-line b {
+    text-align: center;
+    color: var(--blue);
+}
 
-    border: 1px solid #d6d0c4;
-    border-left: 5px solid var(--orange);
+.wiring-note {
+    margin: 0 18px 18px;
+    padding: 10px;
+    border-left: 4px solid var(--blue);
+    background: #eef4f7;
+    color: #56656d;
+    font-size: 9px;
+}
 
-    border-radius: 2px;
-
-    padding: 13px 15px;
-
-    color: #5e5a53;
-
-    font-size: 10px;
+.notice {
+    padding: 12px 15px;
+    border: 1px solid #d5cec3;
+    border-left: 5px solid var(--red);
+    background: #f8f5ef;
+    color: #625d56;
+    font-size: 9px;
     line-height: 1.6;
 }
 
-.notice b,
-.disclaimer b {
-    color: #7e5729;
+.notice b {
+    color: var(--red);
+    margin-right: 8px;
 }
-
-
-/* =========================
-   FOOTER
-   ========================= */
 
 footer {
-    margin-top: 30px;
-
+    padding: 18px;
     background: var(--navy);
-
-    color: #c5d0d6;
-
-    padding: 20px;
-
+    color: #bdcbd2;
     text-align: center;
-
-    font-size: 10px;
+    font-size: 9px;
+    letter-spacing: .5px;
 }
 
-
-/* =========================
-   REPORT / PRINT
-   ========================= */
-
-@media print {
-
-    body {
-        background: white;
-    }
-
-    header,
-    nav,
-    .controls,
-    footer {
-        display: none !important;
-    }
-
-    main,
-    .container,
-    .dashboard,
-    .content {
-        width: 100%;
-        max-width: none;
-        margin: 0;
-    }
-
-    section,
-    .card,
-    .panel {
-        box-shadow: none;
-    }
-
-    .ecg-container,
-    .ecg-display,
-    .graph-container {
-        min-height: 450px;
-    }
-}
-
-
-/* =========================
-   TABLET
-   ========================= */
-
-@media (max-width: 1000px) {
-
-    .vitals,
-    .vital-grid,
-    .metrics {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .patient-grid,
-    .patient-form,
-    .form-grid {
+@media(max-width:950px) {
+    .patient-grid {
         grid-template-columns: 1fr 1fr;
     }
 
-    .controls {
-        flex-wrap: wrap;
+    .vitals {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .wiring-grid {
+        grid-template-columns: 1fr;
     }
 }
 
-
-/* =========================
-   MOBILE
-   ========================= */
-
-@media (max-width: 650px) {
-
-    main,
-    .container,
-    .dashboard,
-    .content {
-        width: 96%;
-        margin: 14px auto;
-    }
-
-    .vitals,
-    .vital-grid,
-    .metrics {
-        grid-template-columns: 1fr;
+@media(max-width:600px) {
+    header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
     }
 
     .patient-grid,
-    .patient-form,
-    .form-grid {
+    .vitals {
         grid-template-columns: 1fr;
     }
 
-    .section-header {
+    .control-panel {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .control-panel > div {
+        width: 100%;
+    }
+
+    .panel-heading {
         align-items: flex-start;
         flex-direction: column;
         gap: 8px;
     }
 
-    .ecg-info {
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .ecg-container,
-    .ecg-display,
-    .graph-container {
-        min-height: 280px;
-        padding: 8px;
-    }
-
-    .controls,
-    .control-panel,
-    .action-bar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .controls label {
-        width: 100%;
-        min-width: 0;
+    .ecg-screen {
+        height: 280px;
     }
 
     button {
         width: 100%;
     }
+}
 
-    .vital-value,
-    .metric-value {
-        font-size: 27px;
+@media print {
+    header,
+    .control-panel,
+    footer {
+        display: none !important;
     }
-}
 
+    main {
+        width: 100%;
+        margin: 0;
+    }
 
-/* =========================
-   REMOVE EXCESSIVE "AI UI"
-   ========================= */
-
-.glow,
-.glow-effect,
-.neon,
-.gradient,
-.floating-card,
-.ai-badge {
-    box-shadow: none !important;
-    filter: none !important;
-}
-
-
-/* =========================
-   CLEAN SCROLLBAR
-   ========================= */
-
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: #e2e6e8;
-}
-
-::-webkit-scrollbar-thumb {
-    background: #9aa5aa;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: #738087;
+    .panel,
+    .vital {
+        box-shadow: none;
+    }
 }
