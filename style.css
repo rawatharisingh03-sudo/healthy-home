@@ -1,196 +1,672 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Healthy Home | Biomedical Monitoring System</title>
-    <link rel="stylesheet" href="style.css">
-</head>
+/* =========================================
+   HEALTHY HOME
+   Biomedical Monitoring System
+   COMPLETE STYLE.CSS
+   ========================================= */
 
-<body>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-<header>
-    <div class="brand">
-        <div class="brand-mark">HH</div>
-        <div>
-            <h1>HEALTHY HOME</h1>
-            <p>BIOMEDICAL MONITORING SYSTEM</p>
-        </div>
-    </div>
+:root {
+    --navy: #102a43;
+    --navy-dark: #081c2d;
+    --blue: #176b9b;
+    --blue-light: #eaf5fb;
+    --cyan: #22a6d5;
+    --green: #1f9d68;
+    --red: #d9534f;
+    --orange: #e89b3c;
+    --purple: #7657c8;
 
-    <div class="connection-status">
-        <span id="statusDot"></span>
-        <span id="connectionStatus">ESP32 DISCONNECTED</span>
-    </div>
-</header>
+    --bg: #eef3f6;
+    --card: #ffffff;
+    --border: #d5dfe5;
 
-<main>
+    --text: #20313d;
+    --muted: #687985;
 
-<section class="panel">
-    <div class="panel-title">PATIENT INFORMATION</div>
+    --shadow: 0 5px 18px rgba(16, 42, 67, 0.09);
+}
 
-    <div class="patient-grid">
-        <div>
-            <label>Patient ID</label>
-            <input id="patientId" type="text" placeholder="Enter patient ID">
-        </div>
+/* PAGE */
 
-        <div>
-            <label>Patient Name</label>
-            <input id="patientName" type="text" placeholder="Enter patient name">
-        </div>
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.5;
+}
 
-        <div>
-            <label>Age</label>
-            <input id="patientAge" type="number" placeholder="Age">
-        </div>
+button,
+input {
+    font-family: inherit;
+}
 
-        <button id="connectBtn">CONNECT ESP32</button>
-    </div>
-</section>
+/* HEADER */
 
+header {
+    background: var(--navy);
+    color: white;
+    padding: 22px 32px;
+    border-bottom: 4px solid var(--cyan);
+}
 
-<section class="vitals">
+.header-inner {
+    max-width: 1400px;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
 
-    <div class="vital">
-        <div class="sensor-tag">MAX30102</div>
-        <p>HEART RATE</p>
-        <strong id="heartRate">--</strong>
-        <span>BPM</span>
-        <small>Optical pulse sensor</small>
-    </div>
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
 
-    <div class="vital">
-        <div class="sensor-tag">MAX30102</div>
-        <p>SpO₂</p>
-        <strong id="spo2">--</strong>
-        <span>%</span>
-        <small>Blood oxygen estimation</small>
-    </div>
+.logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: white;
+    color: var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    border: 3px solid #d8e8ee;
+}
 
-    <div class="vital">
-        <div class="sensor-tag">DHT22</div>
-        <p>TEMPERATURE</p>
-        <strong id="temperature">--</strong>
-        <span>°C</span>
-        <small>Temperature sensor</small>
-    </div>
+.logo-text h1 {
+    font-size: 27px;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
 
-    <div class="vital">
-        <div class="sensor-tag">AD8232</div>
-        <p>ECG SIGNAL</p>
-        <strong id="signalQuality">--</strong>
-        <span>QUALITY</span>
-        <small>Electrical heart signal</small>
-    </div>
+.logo-text p {
+    font-size: 12px;
+    color: #c8d8e1;
+    margin-top: 2px;
+    letter-spacing: 1px;
+}
 
-</section>
+/* CONNECTION STATUS */
 
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 10px 15px;
+    border-radius: 7px;
+    font-size: 13px;
+}
 
-<section class="panel ecg-panel">
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--red);
+}
 
-    <div class="panel-heading">
-        <div>
-            <h2>ECG MONITOR</h2>
-            <p>AD8232 SINGLE-CHANNEL ECG ACQUISITION</p>
-        </div>
+.connected .status-dot {
+    background: #31c47c;
+}
 
-        <div class="technical">
-            <span>RATE <b id="sampleRate">250</b> Hz</span>
-            <span>SAMPLES <b id="sampleCount">0</b></span>
-        </div>
-    </div>
+/* MAIN */
 
-    <div class="ecg-screen">
-        <canvas id="ecgCanvas"></canvas>
-        <div class="lead-label">LEAD I • PROTOTYPE</div>
-    </div>
+main,
+.container {
+    width: min(1400px, calc(100% - 40px));
+    margin: 28px auto 50px;
+}
 
-</section>
+/* PATIENT INFORMATION */
 
+.patient-section,
+.patient-info {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 22px;
+}
 
-<section class="control-panel">
+.section-title {
+    color: var(--navy);
+    font-size: 18px;
+    font-weight: 700;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+}
 
-    <div>
-        <label>RECORDING DURATION</label>
-        <select id="duration">
-            <option value="10">10 Seconds</option>
-            <option value="20">20 Seconds</option>
-            <option value="30">30 Seconds</option>
-        </select>
-    </div>
+.patient-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
 
-    <button id="startRecord">START RECORDING</button>
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
 
-    <button id="stopRecord" disabled>STOP RECORDING</button>
+.form-group label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
-    <button id="reportBtn">GENERATE ECG REPORT</button>
+input {
+    width: 100%;
+    height: 42px;
+    padding: 0 12px;
+    border: 1px solid #c8d3da;
+    border-radius: 6px;
+    background: #fff;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: 0.2s;
+}
 
-</section>
+input:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 3px rgba(34, 166, 213, 0.12);
+}
 
+/* BUTTONS */
 
-<section class="panel recording-status-panel">
+button {
+    border: 0;
+    cursor: pointer;
+    border-radius: 6px;
+    font-weight: 700;
+    transition: 0.2s;
+}
 
-    <div class="panel-heading">
-        <div>
-            <h2>RECORDING STATUS</h2>
-            <p id="recordingStatus">Ready to record</p>
-        </div>
+button:hover {
+    transform: translateY(-1px);
+}
 
-        <strong id="recordingTimer">00:00</strong>
-    </div>
+.primary-btn {
+    background: var(--blue);
+    color: white;
+    padding: 11px 18px;
+}
 
-    <div class="progress-container">
-        <div id="recordingProgress"></div>
-    </div>
+.primary-btn:hover {
+    background: #125a83;
+}
 
-</section>
+.secondary-btn {
+    background: #edf2f5;
+    color: var(--navy);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+}
 
+.connect-btn {
+    background: var(--green);
+    color: white;
+    padding: 11px 18px;
+}
 
-<section class="panel records">
+/* SENSOR GRID */
 
-    <div class="panel-heading">
-        <div>
-            <h2>RECORD HISTORY</h2>
-            <p>Stored measurements from this device</p>
-        </div>
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 22px;
+}
 
-        <b id="recordCount">0 RECORDS</b>
-    </div>
+.sensor-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    min-height: 155px;
+    position: relative;
+    overflow: hidden;
+}
 
-    <div class="table-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th>RECORD ID</th>
-                    <th>DATE / TIME</th>
-                    <th>HEART RATE</th>
-                    <th>SpO₂</th>
-                    <th>TEMP.</th>
-                    <th>ECG SAMPLES</th>
-                </tr>
-            </thead>
+.sensor-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--blue);
+}
 
-            <tbody id="recordsBody"></tbody>
-        </table>
-    </div>
+.sensor-card.heart::before {
+    background: var(--red);
+}
 
-</section>
+.sensor-card.oxygen::before {
+    background: var(--cyan);
+}
 
+.sensor-card.temperature::before {
+    background: var(--orange);
+}
 
-<div class="notice">
-    <b>EXPERIMENTAL PROTOTYPE</b>
-    Healthy Home is an educational electronics and software prototype.
-    Sensor readings and ECG visualization are not a medical diagnosis.
-</div>
+.sensor-card.ecg::before {
+    background: var(--purple);
+}
 
-</main>
+.sensor-card h3 {
+    font-size: 14px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    margin-bottom: 12px;
+}
 
-<footer>
-    HEALTHY HOME • ESP32 BIOMEDICAL MONITORING SYSTEM
-</footer>
+.sensor-value {
+    font-size: 38px;
+    line-height: 1;
+    font-weight: 700;
+    color: var(--navy);
+}
 
-<script src="script.js"></script>
+.sensor-unit {
+    font-size: 15px;
+    color: var(--muted);
+    margin-left: 4px;
+}
 
-</body>
-</html>
+.sensor-name {
+    margin-top: 13px;
+    font-size: 12px;
+    color: #83919a;
+}
+
+/* BIG MONITOR AREA */
+
+.monitor-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 22px;
+}
+
+.monitor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 13px;
+    margin-bottom: 18px;
+}
+
+.monitor-header h2 {
+    color: var(--navy);
+    font-size: 19px;
+}
+
+/* ECG */
+
+.ecg-container {
+    height: 250px;
+    background: #071820;
+    border-radius: 7px;
+    border: 1px solid #183844;
+    position: relative;
+    overflow: hidden;
+}
+
+.ecg-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(70, 140, 150, 0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(70, 140, 150, 0.12) 1px, transparent 1px);
+    background-size: 25px 25px;
+}
+
+.ecg-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 100px;
+    transform: translateY(-50%);
+}
+
+/* GRAPH */
+
+.chart-container {
+    width: 100%;
+    height: 280px;
+    background: #f8fafb;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 15px;
+    overflow: hidden;
+}
+
+canvas {
+    max-width: 100%;
+}
+
+/* MOOD */
+
+.mood-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 22px;
+}
+
+.mood-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.mood-button {
+    padding: 14px;
+    background: #f6f8f9;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 7px;
+    font-size: 14px;
+}
+
+.mood-button:hover {
+    border-color: var(--cyan);
+    background: var(--blue-light);
+}
+
+.mood-display {
+    margin-top: 18px;
+    padding: 16px;
+    background: var(--blue-light);
+    border-left: 4px solid var(--cyan);
+    border-radius: 6px;
+}
+
+.mood-display strong {
+    color: var(--navy);
+}
+
+/* RECORDS */
+
+.records-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 22px;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 700px;
+}
+
+th {
+    background: var(--navy);
+    color: white;
+    text-align: left;
+    padding: 12px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+}
+
+tr:hover td {
+    background: #f5f9fb;
+}
+
+/* REPORT */
+
+.report-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+}
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.report-title {
+    color: var(--navy);
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.report-card {
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 16px;
+    margin-bottom: 14px;
+    background: #fafcfd;
+}
+
+.report-card h3 {
+    color: var(--navy);
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* DEVICE / WIRING */
+
+.wiring-section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    margin-bottom: 22px;
+}
+
+.wiring-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+.wiring-card {
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 16px;
+    background: #fafcfd;
+}
+
+.wiring-card h3 {
+    font-size: 15px;
+    color: var(--navy);
+    margin-bottom: 8px;
+}
+
+.wiring-card p {
+    font-size: 13px;
+    color: var(--muted);
+    margin: 4px 0;
+}
+
+.pin {
+    display: inline-block;
+    background: #e9f3f8;
+    color: var(--blue);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 700;
+}
+
+/* STATUS BADGES */
+
+.badge {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.badge-normal {
+    background: #e7f6ee;
+    color: #17734a;
+}
+
+.badge-warning {
+    background: #fff3df;
+    color: #9a6114;
+}
+
+.badge-danger {
+    background: #fdeaea;
+    color: #a83232;
+}
+
+/* FOOTER */
+
+footer {
+    margin-top: 30px;
+    padding: 20px;
+    background: var(--navy);
+    color: #c8d8e1;
+    text-align: center;
+    font-size: 12px;
+}
+
+/* HIDDEN */
+
+.hidden {
+    display: none !important;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .patient-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .mood-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 650px) {
+
+    header {
+        padding: 18px;
+    }
+
+    .header-inner {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    main,
+    .container {
+        width: calc(100% - 24px);
+        margin-top: 15px;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .patient-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .wiring-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mood-buttons {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .sensor-value {
+        font-size: 32px;
+    }
+
+    .logo-text h1 {
+        font-size: 22px;
+    }
+}
+
+/* PRINT REPORT */
+
+@media print {
+
+    body {
+        background: white;
+    }
+
+    header {
+        background: white;
+        color: black;
+        border-bottom: 1px solid #ccc;
+    }
+
+    .connection-status,
+    button,
+    .connect-btn {
+        display: none !important;
+    }
+
+    .sensor-card,
+    .monitor-section,
+    .patient-section,
+    .records-section,
+    .report-section {
+        box-shadow: none;
+        break-inside: avoid;
+    }
+
+    footer {
+        background: white;
+        color: black;
+    }
+}
