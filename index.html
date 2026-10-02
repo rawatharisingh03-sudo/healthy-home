@@ -1,209 +1,348 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Healthy Home</title>
+  <title>Healthy Home - Health Monitor</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <header>
-    <div class="logo">🏠 Healthy Home</div>
+<header class="header">
+  <div class="brand">
+    <span class="brand-icon">+</span>
+    <div>
+      <h1>Healthy Home</h1>
+      <p>Health Monitoring System</p>
+    </div>
+  </div>
 
-    <nav>
-      <a href="#home">Home</a>
-      <a href="#health">Health</a>
-      <a href="#tips">Tips</a>
-      <a href="#contact">Contact</a>
-    </nav>
-  </header>
+  <div class="connection">
+    <span id="connectionDot"></span>
+    <span id="connectionText">ESP32-S3 Not Connected</span>
+  </div>
+</header>
 
-  <main>
 
-    <section id="home" class="hero">
-      <div class="hero-text">
-        <p class="tag">SMART • HEALTHY • HOME</p>
+<main class="container">
 
-        <h1>
-          Make Your Home<br>
-          <span>Healthier.</span>
-        </h1>
+  <section class="intro">
+    <div>
+      <p class="small-title">PATIENT MONITORING</p>
+      <h2>Health Dashboard</h2>
+      <p>Live information received from connected health sensors.</p>
+    </div>
+  </section>
 
-        <p>
-          Simple tools and useful information to help you
-          create a cleaner, safer and healthier home.
-        </p>
 
-        <button onclick="scrollToHealth()">Explore Health</button>
+  <!-- PATIENT -->
+
+  <section class="card">
+
+    <div class="card-heading">
+      <h3>Patient Information</h3>
+    </div>
+
+    <div class="patient-grid">
+
+      <div class="field">
+        <label>Patient ID</label>
+        <input id="patientId" type="text" placeholder="Enter Patient ID">
       </div>
 
-      <div class="hero-card">
-        <div class="heart">❤️</div>
-        <h2>Healthy Living</h2>
-        <p>Small healthy habits can make a big difference.</p>
-
-        <div class="mini-stats">
-          <div>
-            <strong>24/7</strong>
-            <small>Care</small>
-          </div>
-
-          <div>
-            <strong>100%</strong>
-            <small>Focus</small>
-          </div>
-        </div>
-      </div>
-    </section>
-
-
-    <section id="health" class="section">
-
-      <div class="section-title">
-        <p class="tag">HEALTH CHECK</p>
-        <h2>Your Healthy Home</h2>
-        <p>Check some important areas of a healthy lifestyle.</p>
+      <div class="field">
+        <label>Patient Name</label>
+        <input id="patientName" type="text" placeholder="Enter Patient Name">
       </div>
 
-      <div class="cards">
+      <button id="savePatientButton" onclick="savePatient()">
+        Save
+      </button>
 
-        <div class="card">
-          <div class="icon">💧</div>
-          <h3>Hydration</h3>
-          <p>Drink enough water throughout the day.</p>
+    </div>
 
-          <div class="progress">
-            <div class="progress-bar" style="width:70%"></div>
-          </div>
-
-          <span>70% daily goal</span>
-        </div>
+  </section>
 
 
-        <div class="card">
-          <div class="icon">🥗</div>
-          <h3>Healthy Food</h3>
-          <p>Choose balanced meals with fruits and vegetables.</p>
+  <!-- VITALS -->
 
-          <div class="progress">
-            <div class="progress-bar" style="width:85%"></div>
-          </div>
+  <section class="vitals">
 
-          <span>85% healthy choice</span>
-        </div>
-
-
-        <div class="card">
-          <div class="icon">🏃</div>
-          <h3>Activity</h3>
-          <p>Stay active and take regular movement breaks.</p>
-
-          <div class="progress">
-            <div class="progress-bar" style="width:60%"></div>
-          </div>
-
-          <span>60% activity goal</span>
-        </div>
-
-
-        <div class="card">
-          <div class="icon">😴</div>
-          <h3>Sleep</h3>
-          <p>Maintain a regular sleep schedule and rest well.</p>
-
-          <div class="progress">
-            <div class="progress-bar" style="width:80%"></div>
-          </div>
-
-          <span>80% sleep goal</span>
-        </div>
-
-      </div>
-    </section>
-
-
-    <section id="tips" class="tips-section">
-
-      <div class="section-title">
-        <p class="tag">DAILY HABITS</p>
-        <h2>Healthy Home Tips</h2>
+    <div class="vital-card">
+      <div class="vital-top">
+        <span class="vital-symbol">♥</span>
+        <span class="sensor">MAX30102</span>
       </div>
 
-      <div class="tips">
+      <p>Heart Rate</p>
 
-        <div class="tip">
-          <span>01</span>
-          <div>
-            <h3>Keep your home clean</h3>
-            <p>Regular cleaning can help keep your living environment comfortable.</p>
-          </div>
-        </div>
-
-        <div class="tip">
-          <span>02</span>
-          <div>
-            <h3>Improve ventilation</h3>
-            <p>Fresh air and good ventilation help maintain indoor air quality.</p>
-          </div>
-        </div>
-
-        <div class="tip">
-          <span>03</span>
-          <div>
-            <h3>Stay hydrated</h3>
-            <p>Keep water available and remember to drink regularly.</p>
-          </div>
-        </div>
-
-        <div class="tip">
-          <span>04</span>
-          <div>
-            <h3>Take care of your sleep</h3>
-            <p>A consistent sleep routine supports everyday wellbeing.</p>
-          </div>
-        </div>
-
+      <div class="value">
+        <span id="pulse">--</span>
+        <small>BPM</small>
       </div>
 
-    </section>
-
-
-    <section class="quote-section">
-      <div class="quote">
-        <span>“</span>
-        <h2>A healthy home starts with healthy habits.</h2>
-        <p>Healthy Home</p>
+      <div id="pulseStatus" class="status">
+        Not connected
       </div>
-    </section>
+    </div>
 
 
-    <section id="contact" class="contact">
+    <div class="vital-card">
+      <div class="vital-top">
+        <span class="vital-symbol">O₂</span>
+        <span class="sensor">MAX30102</span>
+      </div>
 
+      <p>SpO₂</p>
+
+      <div class="value">
+        <span id="spo2">--</span>
+        <small>%</small>
+      </div>
+
+      <div id="spo2Status" class="status">
+        Not connected
+      </div>
+    </div>
+
+
+    <div class="vital-card">
+      <div class="vital-top">
+        <span class="vital-symbol">°C</span>
+        <span class="sensor">DHT22</span>
+      </div>
+
+      <p>Temperature</p>
+
+      <div class="value">
+        <span id="temperature">--</span>
+        <small>°C</small>
+      </div>
+
+      <div id="temperatureStatus" class="status">
+        Not connected
+      </div>
+    </div>
+
+
+    <div class="vital-card">
+      <div class="vital-top">
+        <span class="vital-symbol">%</span>
+        <span class="sensor">DHT22</span>
+      </div>
+
+      <p>Humidity</p>
+
+      <div class="value">
+        <span id="humidity">--</span>
+        <small>%</small>
+      </div>
+
+      <div id="humidityStatus" class="status">
+        Not connected
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- ECG -->
+
+  <section class="card">
+
+    <div class="card-heading">
       <div>
-        <p class="tag">HEALTHY HOME</p>
-        <h2>Build better habits today.</h2>
-        <p>
-          Start with small changes and make your home
-          a healthier place to live.
-        </p>
+        <p class="small-title">AD8232</p>
+        <h3>ECG Monitor</h3>
       </div>
 
-      <button onclick="showMessage()">Get Started</button>
+      <div class="ecg-state">
+        <span id="ecgDot"></span>
+        <span id="ecgStatus">Not connected</span>
+      </div>
+    </div>
 
-    </section>
+    <div class="ecg-box">
+      <canvas id="ecgCanvas"></canvas>
+    </div>
 
-  </main>
-
-
-  <footer>
-    <p>© 2026 Healthy Home</p>
-    <p>Made for a healthier lifestyle.</p>
-  </footer>
+  </section>
 
 
-  <script src="script.js"></script>
+  <!-- MOOD -->
+
+  <section class="card">
+
+    <div class="card-heading">
+      <div>
+        <p class="small-title">PATIENT FEELING</p>
+        <h3>Mood</h3>
+      </div>
+    </div>
+
+    <div class="mood-area">
+
+      <div class="current-mood">
+        <span id="moodEmoji">🙂</span>
+
+        <div>
+          <h4 id="moodText">Neutral</h4>
+          <p id="moodDescription">No mood selected.</p>
+        </div>
+      </div>
+
+      <div class="mood-buttons">
+        <button onclick="setMood('happy')">Happy</button>
+        <button onclick="setMood('neutral')">Neutral</button>
+        <button onclick="setMood('sad')">Sad</button>
+        <button onclick="setMood('angry')">Angry</button>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- HEALTH GRAPH -->
+
+  <section class="card">
+
+    <div class="card-heading">
+      <div>
+        <p class="small-title">LIVE DATA</p>
+        <h3>Heart Rate Graph</h3>
+      </div>
+
+      <span id="graphTime">--:--:--</span>
+    </div>
+
+    <div class="graph-box">
+      <canvas id="healthChart"></canvas>
+
+      <div id="graphMessage">
+        Waiting for ESP32-S3 data
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- SENSOR STATUS -->
+
+  <section class="card">
+
+    <div class="card-heading">
+      <div>
+        <p class="small-title">HARDWARE</p>
+        <h3>Sensor Status</h3>
+      </div>
+    </div>
+
+    <div class="sensor-list">
+
+      <div class="sensor-row">
+        <span>ESP32-S3</span>
+        <strong id="espStatus">Not Connected</strong>
+      </div>
+
+      <div class="sensor-row">
+        <span>MAX30102 - Heart Rate</span>
+        <strong id="maxStatus">Not Connected</strong>
+      </div>
+
+      <div class="sensor-row">
+        <span>MAX30102 - SpO₂</span>
+        <strong id="spo2SensorStatus">Not Connected</strong>
+      </div>
+
+      <div class="sensor-row">
+        <span>AD8232 - ECG</span>
+        <strong id="ad8232Status">Not Connected</strong>
+      </div>
+
+      <div class="sensor-row">
+        <span>DHT22 - Temperature</span>
+        <strong id="tempSensorStatus">Not Connected</strong>
+      </div>
+
+      <div class="sensor-row">
+        <span>DHT22 - Humidity</span>
+        <strong id="humiditySensorStatus">Not Connected</strong>
+      </div>
+
+      <div class="sensor-row">
+        <span>Pulse Sensor - Backup HR</span>
+        <strong id="pulseSensorStatus">Not Connected</strong>
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- RECORDS -->
+
+  <section class="card">
+
+    <div class="card-heading">
+      <div>
+        <p class="small-title">PATIENT HISTORY</p>
+        <h3>Health Records</h3>
+      </div>
+
+      <span>
+        Records: <strong id="recordCount">0</strong>
+      </span>
+    </div>
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Heart Rate</th>
+            <th>SpO₂</th>
+            <th>Temperature</th>
+            <th>Humidity</th>
+            <th>Mood</th>
+          </tr>
+        </thead>
+
+        <tbody id="recordsBody"></tbody>
+
+      </table>
+
+    </div>
+
+    <div class="record-buttons">
+
+      <button onclick="addHealthRecord()">
+        Save Current Reading
+      </button>
+
+      <button onclick="printReport()" class="outline-button">
+        Generate Report
+      </button>
+
+    </div>
+
+  </section>
+
+</main>
+
+
+<footer>
+  <p>Healthy Home - Smart Health Monitoring System</p>
+  <p>ESP32-S3 | MAX30102 | AD8232 | DHT22</p>
+</footer>
+
+
+<script src="script.js"></script>
 
 </body>
 </html>
+```
