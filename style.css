@@ -1,483 +1,196 @@
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-:root {
-    --navy: #142b3a;
-    --navy2: #1d3d50;
-    --blue: #2e6f91;
-    --bg: #e9edef;
-    --white: #ffffff;
-    --line: #c9d1d5;
-    --text: #26343d;
-    --muted: #68767e;
-    --green: #3c795f;
-    --red: #a14e45;
-}
-
-body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: Arial, Helvetica, sans-serif;
-}
-
-header {
-    min-height: 76px;
-    background: var(--navy);
-    color: white;
-    border-bottom: 4px solid var(--blue);
-    padding: 14px 4%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-}
-
-.brand-mark {
-    width: 42px;
-    height: 42px;
-    border: 1px solid #8ca7b5;
-    display: grid;
-    place-items: center;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.brand h1 {
-    font-size: 21px;
-    letter-spacing: 1.5px;
-}
-
-.brand p {
-    color: #b9c9d1;
-    font-size: 9px;
-    letter-spacing: 1px;
-    margin-top: 3px;
-}
-
-.connection-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 10px;
-    font-weight: bold;
-}
-
-#statusDot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: #89949a;
-}
-
-main {
-    width: 94%;
-    max-width: 1400px;
-    margin: 24px auto 35px;
-}
-
-.panel,
-.control-panel,
-.vital {
-    background: var(--white);
-    border: 1px solid var(--line);
-    box-shadow: 0 1px 3px rgba(20,40,50,.07);
-}
-
-.panel {
-    margin-bottom: 18px;
-}
-
-.panel-title {
-    background: #f4f6f7;
-    border-bottom: 1px solid var(--line);
-    padding: 12px 16px;
-    font-size: 11px;
-    font-weight: bold;
-    letter-spacing: .8px;
-    color: var(--navy);
-}
-
-.patient-grid {
-    padding: 17px;
-    display: grid;
-    grid-template-columns: 1fr 1fr 120px 180px;
-    gap: 14px;
-    align-items: end;
-}
-
-label {
-    display: block;
-    color: #59676e;
-    font-size: 10px;
-    font-weight: bold;
-    letter-spacing: .4px;
-}
-
-input,
-select {
-    width: 100%;
-    height: 39px;
-    margin-top: 6px;
-    padding: 0 10px;
-    background: white;
-    border: 1px solid #aeb9be;
-    border-radius: 2px;
-    color: var(--text);
-    outline: none;
-}
-
-input:focus,
-select:focus {
-    border-color: var(--blue);
-}
-
-button {
-    min-height: 39px;
-    padding: 8px 15px;
-    border: 1px solid #173342;
-    border-radius: 2px;
-    background: var(--navy);
-    color: white;
-    font-size: 10px;
-    font-weight: bold;
-    letter-spacing: .4px;
-    cursor: pointer;
-}
-
-button:hover {
-    background: var(--navy2);
-}
-
-button:disabled {
-    background: #aeb7bb;
-    border-color: #aeb7bb;
-    cursor: not-allowed;
-}
-
-.vitals {
-    display: grid;
-    grid-template-columns: repeat(4,1fr);
-    gap: 14px;
-    margin-bottom: 18px;
-}
-
-.vital {
-    position: relative;
-    padding: 16px 18px;
-    min-height: 145px;
-}
-
-.vital::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: var(--blue);
-}
-
-.sensor-tag {
-    display: inline-block;
-    border: 1px solid #bdc8cd;
-    padding: 3px 6px;
-    color: var(--muted);
-    font-size: 8px;
-    font-weight: bold;
-    letter-spacing: .5px;
-}
-
-.vital p {
-    margin-top: 14px;
-    color: var(--muted);
-    font-size: 9px;
-    font-weight: bold;
-    letter-spacing: .7px;
-}
-
-.vital strong {
-    color: var(--navy);
-    font-size: 30px;
-    display: inline-block;
-    margin-top: 6px;
-}
-
-.vital > span {
-    color: var(--muted);
-    font-size: 10px;
-}
-
-.vital small {
-    display: block;
-    color: #879197;
-    font-size: 9px;
-    margin-top: 8px;
-}
-
-.panel-heading {
-    padding: 14px 17px;
-    background: #f4f6f7;
-    border-bottom: 1px solid var(--line);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.panel-heading h2 {
-    color: var(--navy);
-    font-size: 14px;
-}
-
-.panel-heading p {
-    color: var(--muted);
-    font-size: 9px;
-    margin-top: 3px;
-    letter-spacing: .3px;
-}
-
-.technical {
-    display: flex;
-    gap: 20px;
-    color: var(--muted);
-    font-size: 9px;
-}
-
-.technical b {
-    color: var(--navy);
-}
-
-.ecg-screen {
-    position: relative;
-    height: 390px;
-    padding: 15px;
-    background-color: #fbfcfa;
-    background-image:
-        linear-gradient(rgba(73,91,96,.11) 1px,transparent 1px),
-        linear-gradient(90deg,rgba(73,91,96,.11) 1px,transparent 1px),
-        linear-gradient(rgba(73,91,96,.045) 1px,transparent 1px),
-        linear-gradient(90deg,rgba(73,91,96,.045) 1px,transparent 1px);
-    background-size: 50px 50px,50px 50px,10px 10px,10px 10px;
-}
-
-#ecgCanvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-}
-
-.lead-label {
-    position: absolute;
-    top: 18px;
-    left: 20px;
-    font-size: 9px;
-    color: #657279;
-    background: rgba(255,255,255,.8);
-    padding: 3px 6px;
-}
-
-.control-panel {
-    padding: 14px;
-    margin-bottom: 18px;
-    display: flex;
-    gap: 11px;
-    align-items: end;
-}
-
-.control-panel > div {
-    width: 160px;
-}
-
-.records {
-    overflow: hidden;
-}
-
-#recordCount {
-    color: var(--muted);
-    font-size: 10px;
-}
-
-.table-wrap {
-    overflow-x: auto;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-th {
-    background: var(--navy);
-    color: white;
-    padding: 11px 13px;
-    text-align: left;
-    font-size: 9px;
-    letter-spacing: .5px;
-}
-
-td {
-    padding: 11px 13px;
-    border-bottom: 1px solid #dde2e4;
-    font-size: 10px;
-}
-
-tbody tr:hover {
-    background: #f4f7f8;
-}
-
-.wiring-grid {
-    padding: 18px;
-    display: grid;
-    grid-template-columns: repeat(2,1fr);
-    gap: 14px;
-}
-
-.wire-card {
-    border: 1px solid var(--line);
-    background: #fbfcfc;
-}
-
-.wire-head {
-    padding: 11px 13px;
-    background: var(--navy);
-    color: white;
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    font-size: 11px;
-}
-
-.wire-head b {
-    color: #a9c5d2;
-}
-
-.wire-line {
-    display: grid;
-    grid-template-columns: 1fr 30px 1.4fr;
-    align-items: center;
-    padding: 9px 12px;
-    border-bottom: 1px solid #e0e4e6;
-    font-size: 9px;
-}
-
-.wire-line:last-child {
-    border-bottom: 0;
-}
-
-.wire-line span:first-child {
-    font-weight: bold;
-    color: #53636c;
-}
-
-.wire-line b {
-    text-align: center;
-    color: var(--blue);
-}
-
-.wiring-note {
-    margin: 0 18px 18px;
-    padding: 10px;
-    border-left: 4px solid var(--blue);
-    background: #eef4f7;
-    color: #56656d;
-    font-size: 9px;
-}
-
-.notice {
-    padding: 12px 15px;
-    border: 1px solid #d5cec3;
-    border-left: 5px solid var(--red);
-    background: #f8f5ef;
-    color: #625d56;
-    font-size: 9px;
-    line-height: 1.6;
-}
-
-.notice b {
-    color: var(--red);
-    margin-right: 8px;
-}
-
-footer {
-    padding: 18px;
-    background: var(--navy);
-    color: #bdcbd2;
-    text-align: center;
-    font-size: 9px;
-    letter-spacing: .5px;
-}
-
-@media(max-width:950px) {
-    .patient-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .vitals {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .wiring-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media(max-width:600px) {
-    header {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .patient-grid,
-    .vitals {
-        grid-template-columns: 1fr;
-    }
-
-    .control-panel {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .control-panel > div {
-        width: 100%;
-    }
-
-    .panel-heading {
-        align-items: flex-start;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .ecg-screen {
-        height: 280px;
-    }
-
-    button {
-        width: 100%;
-    }
-}
-
-@media print {
-    header,
-    .control-panel,
-    footer {
-        display: none !important;
-    }
-
-    main {
-        width: 100%;
-        margin: 0;
-    }
-
-    .panel,
-    .vital {
-        box-shadow: none;
-    }
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthy Home | Biomedical Monitoring System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+    <div class="brand">
+        <div class="brand-mark">HH</div>
+        <div>
+            <h1>HEALTHY HOME</h1>
+            <p>BIOMEDICAL MONITORING SYSTEM</p>
+        </div>
+    </div>
+
+    <div class="connection-status">
+        <span id="statusDot"></span>
+        <span id="connectionStatus">ESP32 DISCONNECTED</span>
+    </div>
+</header>
+
+<main>
+
+<section class="panel">
+    <div class="panel-title">PATIENT INFORMATION</div>
+
+    <div class="patient-grid">
+        <div>
+            <label>Patient ID</label>
+            <input id="patientId" type="text" placeholder="Enter patient ID">
+        </div>
+
+        <div>
+            <label>Patient Name</label>
+            <input id="patientName" type="text" placeholder="Enter patient name">
+        </div>
+
+        <div>
+            <label>Age</label>
+            <input id="patientAge" type="number" placeholder="Age">
+        </div>
+
+        <button id="connectBtn">CONNECT ESP32</button>
+    </div>
+</section>
+
+
+<section class="vitals">
+
+    <div class="vital">
+        <div class="sensor-tag">MAX30102</div>
+        <p>HEART RATE</p>
+        <strong id="heartRate">--</strong>
+        <span>BPM</span>
+        <small>Optical pulse sensor</small>
+    </div>
+
+    <div class="vital">
+        <div class="sensor-tag">MAX30102</div>
+        <p>SpO₂</p>
+        <strong id="spo2">--</strong>
+        <span>%</span>
+        <small>Blood oxygen estimation</small>
+    </div>
+
+    <div class="vital">
+        <div class="sensor-tag">DHT22</div>
+        <p>TEMPERATURE</p>
+        <strong id="temperature">--</strong>
+        <span>°C</span>
+        <small>Temperature sensor</small>
+    </div>
+
+    <div class="vital">
+        <div class="sensor-tag">AD8232</div>
+        <p>ECG SIGNAL</p>
+        <strong id="signalQuality">--</strong>
+        <span>QUALITY</span>
+        <small>Electrical heart signal</small>
+    </div>
+
+</section>
+
+
+<section class="panel ecg-panel">
+
+    <div class="panel-heading">
+        <div>
+            <h2>ECG MONITOR</h2>
+            <p>AD8232 SINGLE-CHANNEL ECG ACQUISITION</p>
+        </div>
+
+        <div class="technical">
+            <span>RATE <b id="sampleRate">250</b> Hz</span>
+            <span>SAMPLES <b id="sampleCount">0</b></span>
+        </div>
+    </div>
+
+    <div class="ecg-screen">
+        <canvas id="ecgCanvas"></canvas>
+        <div class="lead-label">LEAD I • PROTOTYPE</div>
+    </div>
+
+</section>
+
+
+<section class="control-panel">
+
+    <div>
+        <label>RECORDING DURATION</label>
+        <select id="duration">
+            <option value="10">10 Seconds</option>
+            <option value="20">20 Seconds</option>
+            <option value="30">30 Seconds</option>
+        </select>
+    </div>
+
+    <button id="startRecord">START RECORDING</button>
+
+    <button id="stopRecord" disabled>STOP RECORDING</button>
+
+    <button id="reportBtn">GENERATE ECG REPORT</button>
+
+</section>
+
+
+<section class="panel recording-status-panel">
+
+    <div class="panel-heading">
+        <div>
+            <h2>RECORDING STATUS</h2>
+            <p id="recordingStatus">Ready to record</p>
+        </div>
+
+        <strong id="recordingTimer">00:00</strong>
+    </div>
+
+    <div class="progress-container">
+        <div id="recordingProgress"></div>
+    </div>
+
+</section>
+
+
+<section class="panel records">
+
+    <div class="panel-heading">
+        <div>
+            <h2>RECORD HISTORY</h2>
+            <p>Stored measurements from this device</p>
+        </div>
+
+        <b id="recordCount">0 RECORDS</b>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>RECORD ID</th>
+                    <th>DATE / TIME</th>
+                    <th>HEART RATE</th>
+                    <th>SpO₂</th>
+                    <th>TEMP.</th>
+                    <th>ECG SAMPLES</th>
+                </tr>
+            </thead>
+
+            <tbody id="recordsBody"></tbody>
+        </table>
+    </div>
+
+</section>
+
+
+<div class="notice">
+    <b>EXPERIMENTAL PROTOTYPE</b>
+    Healthy Home is an educational electronics and software prototype.
+    Sensor readings and ECG visualization are not a medical diagnosis.
+</div>
+
+</main>
+
+<footer>
+    HEALTHY HOME • ESP32 BIOMEDICAL MONITORING SYSTEM
+</footer>
+
+<script src="script.js"></script>
+
+</body>
+</html>
