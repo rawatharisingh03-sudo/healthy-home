@@ -1,8 +1,8 @@
-/* =========================================
+/* =====================================================
    HEALTHY HOME
-   Biomedical Monitoring System
-   COMPLETE STYLE.CSS
-   ========================================= */
+   BIOMEDICAL MONITORING SYSTEM
+   MATCHED TO CURRENT INDEX.HTML
+   ===================================================== */
 
 * {
     box-sizing: border-box;
@@ -12,67 +12,54 @@
 
 :root {
     --navy: #102a43;
-    --navy-dark: #081c2d;
+    --navy-2: #183b56;
     --blue: #176b9b;
-    --blue-light: #eaf5fb;
     --cyan: #22a6d5;
-    --green: #1f9d68;
-    --red: #d9534f;
-    --orange: #e89b3c;
-    --purple: #7657c8;
 
-    --bg: #eef3f6;
-    --card: #ffffff;
-    --border: #d5dfe5;
+    --bg: #edf2f5;
+    --white: #ffffff;
+    --border: #d1dbe1;
 
     --text: #20313d;
-    --muted: #687985;
+    --muted: #6b7b86;
 
-    --shadow: 0 5px 18px rgba(16, 42, 67, 0.09);
+    --green: #1f9d68;
+    --red: #d9534f;
+    --orange: #d98b2b;
+    --purple: #7155b8;
+
+    --shadow: 0 4px 16px rgba(16, 42, 67, 0.08);
 }
-
-/* PAGE */
 
 body {
     font-family: Arial, Helvetica, sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
-    line-height: 1.5;
 }
 
-button,
-input {
-    font-family: inherit;
-}
-
-/* HEADER */
+/* =====================================================
+   HEADER
+   ===================================================== */
 
 header {
     background: var(--navy);
     color: white;
-    padding: 22px 32px;
+    padding: 24px 45px;
     border-bottom: 4px solid var(--cyan);
 }
 
-.header-inner {
+.brand {
     max-width: 1400px;
-    margin: auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-}
-
-.logo-area {
+    margin: 0 auto;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 15px;
 }
 
-.logo {
-    width: 48px;
-    height: 48px;
+.brand-mark {
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     background: white;
     color: var(--navy);
@@ -80,172 +67,175 @@ header {
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    font-size: 18px;
-    border: 3px solid #d8e8ee;
+    font-size: 16px;
+    border: 3px solid #dce8ed;
 }
 
-.logo-text h1 {
+.brand h1 {
     font-size: 27px;
     letter-spacing: 1px;
     font-weight: 700;
 }
 
-.logo-text p {
+.brand p {
+    margin-top: 4px;
     font-size: 12px;
-    color: #c8d8e1;
-    margin-top: 2px;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
+    color: #cbd9e0;
 }
 
-/* CONNECTION STATUS */
+/* =====================================================
+   CONNECTION STATUS
+   ===================================================== */
 
 .connection-status {
+    max-width: 1400px;
+    margin: 18px auto 0;
+    height: 48px;
+
     display: flex;
     align-items: center;
-    gap: 9px;
+    gap: 10px;
+
+    padding: 0 18px;
+    border-radius: 8px;
+
     background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    padding: 10px 15px;
-    border-radius: 7px;
-    font-size: 13px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+
+    font-size: 14px;
+    font-weight: 600;
 }
 
-.status-dot {
+#statusDot {
     width: 10px;
     height: 10px;
     border-radius: 50%;
     background: var(--red);
+    display: inline-block;
 }
 
-.connected .status-dot {
-    background: #31c47c;
+.connected #statusDot {
+    background: var(--green);
 }
 
-/* MAIN */
+/* =====================================================
+   MAIN
+   ===================================================== */
 
-main,
-.container {
-    width: min(1400px, calc(100% - 40px));
+main {
+    width: min(1400px, calc(100% - 50px));
     margin: 28px auto 50px;
 }
 
-/* PATIENT INFORMATION */
+/* =====================================================
+   COMMON PANEL
+   ===================================================== */
 
-.patient-section,
-.patient-info {
-    background: var(--card);
+.panel {
+    background: var(--white);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 22px;
+    border-radius: 9px;
     box-shadow: var(--shadow);
-    margin-bottom: 22px;
+    padding: 22px;
+    margin-bottom: 20px;
 }
 
-.section-title {
-    color: var(--navy);
+.panel-title {
     font-size: 18px;
     font-weight: 700;
+    color: var(--navy);
+    padding-bottom: 13px;
     border-bottom: 1px solid var(--border);
-    padding-bottom: 12px;
     margin-bottom: 18px;
 }
 
+/* =====================================================
+   PATIENT INFORMATION
+   ===================================================== */
+
 .patient-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    align-items: end;
 }
 
-.form-group {
+.patient-grid > div {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 7px;
 }
 
-.form-group label {
+label {
     font-size: 12px;
-    color: var(--muted);
     font-weight: 700;
-    text-transform: uppercase;
+    color: var(--muted);
     letter-spacing: 0.5px;
 }
 
-input {
+input,
+select {
     width: 100%;
-    height: 42px;
-    padding: 0 12px;
-    border: 1px solid #c8d3da;
+    height: 43px;
+    border: 1px solid #c9d5dc;
     border-radius: 6px;
-    background: #fff;
+    padding: 0 12px;
+    background: white;
     color: var(--text);
     font-size: 14px;
     outline: none;
-    transition: 0.2s;
 }
 
-input:focus {
+input:focus,
+select:focus {
     border-color: var(--cyan);
     box-shadow: 0 0 0 3px rgba(34, 166, 213, 0.12);
 }
 
-/* BUTTONS */
+#connectBtn {
+    grid-column: 1 / 2;
+    height: 43px;
 
-button {
-    border: 0;
-    cursor: pointer;
-    border-radius: 6px;
-    font-weight: 700;
-    transition: 0.2s;
-}
-
-button:hover {
-    transform: translateY(-1px);
-}
-
-.primary-btn {
     background: var(--blue);
     color: white;
-    padding: 11px 18px;
+
+    border: none;
+    border-radius: 6px;
+
+    font-weight: 700;
+    cursor: pointer;
 }
 
-.primary-btn:hover {
+#connectBtn:hover {
     background: #125a83;
 }
 
-.secondary-btn {
-    background: #edf2f5;
-    color: var(--navy);
-    border: 1px solid var(--border);
-    padding: 10px 16px;
-}
+/* =====================================================
+   VITALS
+   ===================================================== */
 
-.connect-btn {
-    background: var(--green);
-    color: white;
-    padding: 11px 18px;
-}
-
-/* SENSOR GRID */
-
-.dashboard-grid {
+.vitals {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 18px;
-    margin-bottom: 22px;
+    margin-bottom: 20px;
 }
 
-.sensor-card {
-    background: var(--card);
+.vital {
+    background: white;
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 20px;
+    border-radius: 9px;
     box-shadow: var(--shadow);
-    min-height: 155px;
+
+    min-height: 190px;
+    padding: 20px;
+
     position: relative;
     overflow: hidden;
 }
 
-.sensor-card::before {
+.vital::before {
     content: "";
     position: absolute;
     left: 0;
@@ -255,388 +245,408 @@ button:hover {
     background: var(--blue);
 }
 
-.sensor-card.heart::before {
+.vital:nth-child(1)::before {
     background: var(--red);
 }
 
-.sensor-card.oxygen::before {
+.vital:nth-child(2)::before {
     background: var(--cyan);
 }
 
-.sensor-card.temperature::before {
+.vital:nth-child(3)::before {
     background: var(--orange);
 }
 
-.sensor-card.ecg::before {
+.vital:nth-child(4)::before {
     background: var(--purple);
 }
 
-.sensor-card h3 {
-    font-size: 14px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.7px;
-    margin-bottom: 12px;
-}
+.sensor-tag {
+    display: inline-block;
+    padding: 5px 8px;
 
-.sensor-value {
-    font-size: 38px;
-    line-height: 1;
+    background: #edf4f7;
+    color: var(--blue);
+
+    border-radius: 4px;
+
+    font-size: 10px;
     font-weight: 700;
-    color: var(--navy);
+    letter-spacing: 0.7px;
+
+    margin-bottom: 15px;
 }
 
-.sensor-unit {
-    font-size: 15px;
+.vital p {
     color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    margin-bottom: 9px;
+}
+
+.vital strong {
+    color: var(--navy);
+    font-size: 36px;
+    line-height: 1;
+}
+
+.vital > span {
+    color: var(--muted);
+    font-size: 14px;
     margin-left: 4px;
 }
 
-.sensor-name {
+.vital small {
+    display: block;
+    color: #7c8b94;
+    font-size: 11px;
     margin-top: 13px;
-    font-size: 12px;
-    color: #83919a;
 }
 
-/* BIG MONITOR AREA */
+/* =====================================================
+   ECG MONITOR
+   ===================================================== */
 
-.monitor-section {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+.ecg-panel {
     padding: 22px;
-    box-shadow: var(--shadow);
-    margin-bottom: 22px;
 }
 
-.monitor-header {
+.panel-heading {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 20px;
+
+    padding-bottom: 15px;
+    margin-bottom: 17px;
+
     border-bottom: 1px solid var(--border);
-    padding-bottom: 13px;
-    margin-bottom: 18px;
 }
 
-.monitor-header h2 {
+.panel-heading h2 {
     color: var(--navy);
     font-size: 19px;
+    letter-spacing: 0.4px;
 }
 
-/* ECG */
-
-.ecg-container {
-    height: 250px;
-    background: #071820;
-    border-radius: 7px;
-    border: 1px solid #183844;
-    position: relative;
-    overflow: hidden;
+.panel-heading p {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0.5px;
 }
 
-.ecg-grid {
-    position: absolute;
-    inset: 0;
-    background-image:
-        linear-gradient(rgba(70, 140, 150, 0.12) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(70, 140, 150, 0.12) 1px, transparent 1px);
-    background-size: 25px 25px;
+.technical {
+    display: flex;
+    gap: 18px;
 }
 
-.ecg-line {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 50%;
-    height: 100px;
-    transform: translateY(-50%);
-}
-
-/* GRAPH */
-
-.chart-container {
-    width: 100%;
-    height: 280px;
-    background: #f8fafb;
+.technical span {
+    padding: 8px 11px;
+    background: #f0f4f6;
     border: 1px solid var(--border);
-    border-radius: 7px;
-    padding: 15px;
-    overflow: hidden;
+    border-radius: 5px;
+
+    font-size: 11px;
+    color: var(--muted);
 }
 
-canvas {
-    max-width: 100%;
-}
-
-/* MOOD */
-
-.mood-section {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 22px;
-    box-shadow: var(--shadow);
-    margin-bottom: 22px;
-}
-
-.mood-buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-}
-
-.mood-button {
-    padding: 14px;
-    background: #f6f8f9;
-    border: 1px solid var(--border);
-    color: var(--text);
-    border-radius: 7px;
-    font-size: 14px;
-}
-
-.mood-button:hover {
-    border-color: var(--cyan);
-    background: var(--blue-light);
-}
-
-.mood-display {
-    margin-top: 18px;
-    padding: 16px;
-    background: var(--blue-light);
-    border-left: 4px solid var(--cyan);
-    border-radius: 6px;
-}
-
-.mood-display strong {
+.technical b {
     color: var(--navy);
 }
 
-/* RECORDS */
+/* ECG SCREEN */
 
-.records-section {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 22px;
-    box-shadow: var(--shadow);
-    margin-bottom: 22px;
+.ecg-screen {
+    height: 310px;
+    position: relative;
+    overflow: hidden;
+
+    background: #071820;
+    border: 1px solid #183b45;
+    border-radius: 7px;
 }
 
-.table-wrapper {
+.ecg-screen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background-image:
+        linear-gradient(rgba(90, 150, 155, 0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(90, 150, 155, 0.12) 1px, transparent 1px);
+
+    background-size: 25px 25px;
+    pointer-events: none;
+}
+
+#ecgCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    position: relative;
+    z-index: 2;
+}
+
+.lead-label {
+    position: absolute;
+    top: 12px;
+    left: 14px;
+    z-index: 3;
+
+    color: #b8d5d8;
+    font-size: 10px;
+    letter-spacing: 0.7px;
+
+    background: rgba(0, 0, 0, 0.25);
+    padding: 5px 7px;
+    border-radius: 3px;
+}
+
+/* =====================================================
+   RECORDING CONTROLS
+   ===================================================== */
+
+.control-panel {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    box-shadow: var(--shadow);
+
+    padding: 18px 22px;
+    margin-bottom: 20px;
+
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1.4fr;
+    gap: 14px;
+    align-items: end;
+}
+
+.control-panel > div {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.control-panel button {
+    height: 43px;
+    border-radius: 6px;
+    border: none;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+#startRecord {
+    background: var(--green);
+    color: white;
+}
+
+#stopRecord {
+    background: var(--red);
+    color: white;
+}
+
+#stopRecord:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+#reportBtn {
+    background: var(--blue);
+    color: white;
+}
+
+/* =====================================================
+   RECORDING STATUS
+   ===================================================== */
+
+.recording-status-panel {
+    padding-bottom: 20px;
+}
+
+#recordingTimer {
+    font-size: 22px;
+    color: var(--navy);
+    font-family: monospace;
+}
+
+.progress-container {
+    width: 100%;
+    height: 9px;
+
+    background: #e6ecef;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#recordingProgress {
+    width: 0%;
+    height: 100%;
+    background: var(--cyan);
+    border-radius: 10px;
+
+    transition: width 0.2s linear;
+}
+
+/* =====================================================
+   RECORD HISTORY
+   ===================================================== */
+
+.records {
+    overflow: hidden;
+}
+
+#recordCount {
+    color: var(--blue);
+    font-size: 12px;
+}
+
+.table-wrap {
+    width: 100%;
     overflow-x: auto;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 700px;
+    min-width: 750px;
 }
 
-th {
+thead th {
     background: var(--navy);
     color: white;
-    text-align: left;
+
     padding: 12px;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
+    text-align: left;
+
+    font-size: 11px;
+    letter-spacing: 0.5px;
 }
 
-td {
+tbody td {
     padding: 12px;
     border-bottom: 1px solid var(--border);
-    font-size: 13px;
+
+    color: var(--text);
+    font-size: 12px;
 }
 
-tr:hover td {
+tbody tr:hover {
     background: #f5f9fb;
 }
 
-/* REPORT */
+/* =====================================================
+   NOTICE
+   ===================================================== */
 
-.report-section {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 22px;
-    box-shadow: var(--shadow);
-}
+.notice {
+    background: #fff9ed;
+    border: 1px solid #ead7ad;
+    border-left: 4px solid var(--orange);
 
-.report-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.report-title {
-    color: var(--navy);
-    font-size: 20px;
-    font-weight: 700;
-}
-
-.report-card {
-    border: 1px solid var(--border);
     border-radius: 7px;
-    padding: 16px;
-    margin-bottom: 14px;
-    background: #fafcfd;
+
+    padding: 14px 17px;
+    margin-top: 20px;
+
+    color: #6e5a35;
+    font-size: 12px;
+    line-height: 1.6;
 }
 
-.report-card h3 {
-    color: var(--navy);
-    font-size: 14px;
-    margin-bottom: 10px;
+.notice b {
+    color: #815e1e;
+    margin-right: 7px;
 }
 
-/* DEVICE / WIRING */
-
-.wiring-section {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 22px;
-    box-shadow: var(--shadow);
-    margin-bottom: 22px;
-}
-
-.wiring-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 15px;
-}
-
-.wiring-card {
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    padding: 16px;
-    background: #fafcfd;
-}
-
-.wiring-card h3 {
-    font-size: 15px;
-    color: var(--navy);
-    margin-bottom: 8px;
-}
-
-.wiring-card p {
-    font-size: 13px;
-    color: var(--muted);
-    margin: 4px 0;
-}
-
-.pin {
-    display: inline-block;
-    background: #e9f3f8;
-    color: var(--blue);
-    padding: 2px 7px;
-    border-radius: 4px;
-    font-weight: 700;
-}
-
-/* STATUS BADGES */
-
-.badge {
-    display: inline-block;
-    padding: 5px 9px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 700;
-}
-
-.badge-normal {
-    background: #e7f6ee;
-    color: #17734a;
-}
-
-.badge-warning {
-    background: #fff3df;
-    color: #9a6114;
-}
-
-.badge-danger {
-    background: #fdeaea;
-    color: #a83232;
-}
-
-/* FOOTER */
+/* =====================================================
+   FOOTER
+   ===================================================== */
 
 footer {
-    margin-top: 30px;
-    padding: 20px;
     background: var(--navy);
-    color: #c8d8e1;
+    color: #c7d6de;
+
     text-align: center;
-    font-size: 12px;
+
+    padding: 18px;
+    font-size: 11px;
+    letter-spacing: 0.5px;
 }
 
-/* HIDDEN */
+/* =====================================================
+   RESPONSIVE
+   ===================================================== */
 
-.hidden {
-    display: none !important;
-}
+@media (max-width: 1100px) {
 
-/* RESPONSIVE */
-
-@media (max-width: 1000px) {
-
-    .dashboard-grid {
+    .vitals {
         grid-template-columns: repeat(2, 1fr);
     }
 
     .patient-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr 1fr;
     }
 
-    .mood-buttons {
-        grid-template-columns: repeat(2, 1fr);
+    #connectBtn {
+        grid-column: auto;
+    }
+
+    .control-panel {
+        grid-template-columns: 1fr 1fr;
     }
 }
 
-@media (max-width: 650px) {
+@media (max-width: 700px) {
 
     header {
         padding: 18px;
     }
 
-    .header-inner {
+    .brand h1 {
+        font-size: 22px;
+    }
+
+    .brand p {
+        font-size: 10px;
+    }
+
+    main {
+        width: calc(100% - 24px);
+        margin-top: 16px;
+    }
+
+    .patient-grid,
+    .vitals,
+    .control-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .panel-heading {
         align-items: flex-start;
         flex-direction: column;
     }
 
-    main,
-    .container {
-        width: calc(100% - 24px);
-        margin-top: 15px;
+    .technical {
+        width: 100%;
     }
 
-    .dashboard-grid {
-        grid-template-columns: 1fr;
+    .technical span {
+        flex: 1;
     }
 
-    .patient-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .wiring-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .mood-buttons {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .sensor-value {
-        font-size: 32px;
-    }
-
-    .logo-text h1 {
-        font-size: 22px;
+    .ecg-screen {
+        height: 260px;
     }
 }
 
-/* PRINT REPORT */
+/* =====================================================
+   PRINT
+   ===================================================== */
 
 @media print {
 
@@ -644,29 +654,22 @@ footer {
         background: white;
     }
 
-    header {
-        background: white;
-        color: black;
-        border-bottom: 1px solid #ccc;
-    }
-
-    .connection-status,
-    button,
-    .connect-btn {
-        display: none !important;
-    }
-
-    .sensor-card,
-    .monitor-section,
-    .patient-section,
-    .records-section,
-    .report-section {
-        box-shadow: none;
-        break-inside: avoid;
-    }
-
+    header,
     footer {
         background: white;
         color: black;
+    }
+
+    .connection-status {
+        display: none;
+    }
+
+    .control-panel {
+        display: none;
+    }
+
+    .panel,
+    .vital {
+        box-shadow: none;
     }
 }
