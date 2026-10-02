@@ -1,459 +1,318 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>Healthy Home | Health Monitoring System</title>
-
-  <link rel="stylesheet" href="style.css" />
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Healthy Home | Biomedical Monitoring System</title>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <header class="topbar">
-
+<header>
     <div class="brand">
-      <div class="brand-mark">HH</div>
-
-      <div>
-        <h1>HEALTHY HOME</h1>
-        <span>SMART HEALTH MONITORING SYSTEM</span>
-      </div>
+        <div class="brand-mark">HH</div>
+        <div>
+            <h1>HEALTHY HOME</h1>
+            <p>BIOMEDICAL MONITORING SYSTEM</p>
+        </div>
     </div>
 
-    <div class="connection">
-      <span class="status-dot" id="statusDot"></span>
-      <span id="connectionText">DEVICE NOT CONNECTED</span>
-      <button id="connectBtn">CONNECT DEVICE</button>
+    <div class="connection-status">
+        <span id="statusDot"></span>
+        <span id="connectionStatus">ESP32 DISCONNECTED</span>
     </div>
+</header>
 
-  </header>
-
-
-  <main class="dashboard">
+<main>
 
     <!-- PATIENT -->
+    <section class="panel">
+        <div class="panel-title">PATIENT INFORMATION</div>
 
-    <section class="patient-bar">
+        <div class="patient-grid">
+            <div>
+                <label>Patient ID</label>
+                <input id="patientId" type="text" placeholder="Enter patient ID">
+            </div>
 
-      <div>
-        <label>PATIENT ID</label>
-        <input id="patientId" type="text" placeholder="HH-001" />
-      </div>
+            <div>
+                <label>Patient Name</label>
+                <input id="patientName" type="text" placeholder="Enter patient name">
+            </div>
 
-      <div>
-        <label>PATIENT NAME</label>
-        <input id="patientName" type="text" placeholder="Patient Name" />
-      </div>
+            <div>
+                <label>Age</label>
+                <input id="patientAge" type="number" placeholder="Age">
+            </div>
 
-      <div class="live-state">
-        <span class="pulse-indicator"></span>
-        LIVE MONITORING
-      </div>
-
+            <button id="connectBtn">CONNECT ESP32</button>
+        </div>
     </section>
 
 
     <!-- VITALS -->
-
     <section class="vitals">
 
-      <!-- HEART RATE -->
-
-      <article class="vital-card">
-
-        <div class="vital-head">
-          <span>HEART RATE</span>
-          <small>BPM</small>
+        <div class="vital">
+            <div class="sensor-tag">MAX30102</div>
+            <p>HEART RATE</p>
+            <strong id="heartRate">--</strong>
+            <span>BPM</span>
+            <small>Optical pulse sensor</small>
         </div>
 
-        <div class="vital-value">
-          <strong id="heartRate">--</strong>
-          <span>BPM</span>
+        <div class="vital">
+            <div class="sensor-tag">MAX30102</div>
+            <p>SpO₂</p>
+            <strong id="spo2">--</strong>
+            <span>%</span>
+            <small>Blood oxygen estimation</small>
         </div>
 
-        <div class="mini-line" id="hrLine"></div>
-
-        <footer>MAX30102 / PULSE SENSOR</footer>
-
-      </article>
-
-
-      <!-- SpO2 -->
-
-      <article class="vital-card">
-
-        <div class="vital-head">
-          <span>SpO₂</span>
-          <small>OXYGEN</small>
+        <div class="vital">
+            <div class="sensor-tag">DHT22</div>
+            <p>TEMPERATURE</p>
+            <strong id="temperature">--</strong>
+            <span>°C</span>
+            <small>Temperature sensor</small>
         </div>
 
-        <div class="vital-value">
-          <strong id="spo2">--</strong>
-          <span>%</span>
+        <div class="vital">
+            <div class="sensor-tag">AD8232</div>
+            <p>ECG SIGNAL</p>
+            <strong id="signalQuality">--</strong>
+            <span>QUALITY</span>
+            <small>Electrical heart signal</small>
         </div>
-
-        <div class="oxygen-bar">
-          <div id="oxygenFill"></div>
-        </div>
-
-        <footer>MAX30102</footer>
-
-      </article>
-
-
-      <!-- TEMPERATURE -->
-
-      <article class="vital-card">
-
-        <div class="vital-head">
-          <span>TEMPERATURE</span>
-          <small>BODY</small>
-        </div>
-
-        <div class="vital-value">
-          <strong id="temperature">--</strong>
-          <span>°C</span>
-        </div>
-
-        <div class="mini-line"></div>
-
-        <footer>DHT22</footer>
-
-      </article>
 
     </section>
 
 
-    <!-- ECG + SIDE PANEL -->
+    <!-- ECG -->
+    <section class="panel ecg-panel">
 
-    <section class="monitor-grid">
+        <div class="panel-heading">
+            <div>
+                <h2>ECG MONITOR</h2>
+                <p>AD8232 SINGLE-CHANNEL ECG ACQUISITION</p>
+            </div>
 
-      <div class="ecg-panel">
-
-        <div class="panel-header">
-
-          <div>
-            <h2>ECG MONITOR</h2>
-            <span id="leadStatus">LEAD STATUS: NO SIGNAL</span>
-          </div>
-
-          <div class="ecg-tools">
-            <span>25 mm/s</span>
-            <span>10 mm/mV</span>
-            <button id="captureBtn">CAPTURE 10 SEC</button>
-          </div>
-
+            <div class="technical">
+                <span>RATE <b id="sampleRate">250</b> Hz</span>
+                <span>SAMPLES <b id="sampleCount">0</b></span>
+            </div>
         </div>
-
 
         <div class="ecg-screen">
+            <canvas id="ecgCanvas"></canvas>
 
-          <canvas id="ecgChart"></canvas>
-
-          <div class="signal-overlay" id="signalOverlay">
-            <span>WAITING FOR ECG SIGNAL</span>
-          </div>
-
+            <div class="lead-label">LEAD I • PROTOTYPE</div>
         </div>
 
+    </section>
 
-        <div class="ecg-footer">
 
-          <div>
-            <span>SAMPLING</span>
-            <strong id="samplingRate">250 Hz</strong>
-          </div>
+    <!-- CONTROLS -->
+    <section class="control-panel">
 
-          <div>
-            <span>SAMPLES</span>
-            <strong id="sampleCount">0</strong>
-          </div>
-
-          <div>
-            <span>CAPTURE</span>
-            <strong id="captureTime">00:00</strong>
-          </div>
-
-          <div>
-            <span>STATUS</span>
-            <strong id="ecgState">STANDBY</strong>
-          </div>
-
+        <div>
+            <label>RECORDING</label>
+            <select id="duration">
+                <option value="10">10 Seconds</option>
+                <option value="20">20 Seconds</option>
+                <option value="30">30 Seconds</option>
+            </select>
         </div>
 
-      </div>
-
-
-      <!-- SIDE PANEL -->
-
-      <aside class="side-panel">
-
-
-        <!-- SIGNAL QUALITY -->
-
-        <div class="side-card">
-
-          <h3>SIGNAL QUALITY</h3>
-
-          <div class="quality-meter">
-            <div id="qualityFill"></div>
-          </div>
-
-          <div class="quality-row">
-            <span id="qualityText">NO SIGNAL</span>
-            <strong id="qualityPercent">0%</strong>
-          </div>
-
-        </div>
-
-
-        <!-- LEAD DETECTION -->
-
-        <div class="side-card">
-
-          <h3>LEAD DETECTION</h3>
-
-          <div class="lead-row">
-            <span>LO+</span>
-            <strong id="loPlus">---</strong>
-          </div>
-
-          <div class="lead-row">
-            <span>LO−</span>
-            <strong id="loMinus">---</strong>
-          </div>
-
-        </div>
-
-
-        <!-- DEVICE -->
-
-        <div class="side-card">
-
-          <h3>DEVICE</h3>
-
-          <div class="device-row">
-            <span>ESP32</span>
-            <strong id="deviceState">OFFLINE</strong>
-          </div>
-
-          <div class="device-row">
-            <span>DATA LINK</span>
-            <strong id="dataLink">WAITING</strong>
-          </div>
-
-        </div>
-
-
-        <!-- ACTIONS -->
-
-        <div class="side-card action-card">
-
-          <button id="reportBtn" class="primary-btn">
-            GENERATE ECG REPORT
-          </button>
-
-          <button id="csvBtn" class="secondary-btn">
-            EXPORT ECG CSV
-          </button>
-
-        </div>
-
-      </aside>
+        <button id="startRecord">START RECORDING</button>
+        <button id="stopRecord" disabled>STOP RECORDING</button>
+        <button id="reportBtn">GENERATE ECG REPORT</button>
 
     </section>
 
 
     <!-- RECORDS -->
+    <section class="panel records">
 
-    <section class="records-section">
+        <div class="panel-heading">
+            <div>
+                <h2>RECORD HISTORY</h2>
+                <p>Stored measurements from this device</p>
+            </div>
 
-      <div class="section-heading">
-
-        <div>
-          <h2>RECENT RECORDS</h2>
-          <span>Captured patient monitoring sessions</span>
+            <b id="recordCount">0 RECORDS</b>
         </div>
 
-        <strong id="recordCount">0 RECORDS</strong>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>RECORD ID</th>
+                        <th>DATE / TIME</th>
+                        <th>HEART RATE</th>
+                        <th>SpO₂</th>
+                        <th>TEMP.</th>
+                        <th>ECG SAMPLES</th>
+                    </tr>
+                </thead>
 
-      </div>
-
-
-      <div class="table-wrap">
-
-        <table>
-
-          <thead>
-
-            <tr>
-              <th>TIME</th>
-              <th>PATIENT</th>
-              <th>HR</th>
-              <th>SpO₂</th>
-              <th>TEMP</th>
-              <th>ECG</th>
-            </tr>
-
-          </thead>
-
-          <tbody id="recordsBody"></tbody>
-
-        </table>
-
-      </div>
+                <tbody id="recordsBody"></tbody>
+            </table>
+        </div>
 
     </section>
 
-  </main>
+
+    <!-- WIRING -->
+    <section class="panel wiring">
+
+        <div class="panel-title">SENSOR WIRING REFERENCE</div>
+
+        <div class="wiring-grid">
+
+            <div class="wire-card">
+                <div class="wire-head">
+                    <b>01</b>
+                    <span>AD8232 ECG</span>
+                </div>
+
+                <div class="wire-line">
+                    <span>3.3V</span>
+                    <b>→</b>
+                    <span>ESP32 3V3</span>
+                </div>
+
+                <div class="wire-line">
+                    <span>GND</span>
+                    <b>→</b>
+                    <span>ESP32 GND</span>
+                </div>
+
+                <div class="wire-line">
+                    <span>OUTPUT</span>
+                    <b>→</b>
+                    <span>ESP32 ECG INPUT</span>
+                </div>
+
+                <div class="wire-line">
+                    <span>LO+</span>
+                    <b>→</b>
+                    <span>ESP32 DIGITAL INPUT</span>
+                </div>
+
+                <div class="wire-line">
+                    <span>LO−</span>
+                    <b>→</b>
+                    <span>ESP32 DIGITAL INPUT</span>
+                </div>
+            </div>
 
 
-  <!-- FOOTER -->
+            <div class="wire-card">
+                <div class="wire-head">
+                    <b>02</b>
+                    <span>MAX30102</span>
+                </div>
 
-  <footer class="footer">
+                <div class="wire-line">
+                    <span>VIN / 3.3V</span>
+                    <b>→</b>
+                    <span>ESP32 3V3</span>
+                </div>
 
-    <span>HEALTHY HOME</span>
-    <span>SMART HEALTH MONITORING SYSTEM</span>
-    <span id="clock">--:--:--</span>
+                <div class="wire-line">
+                    <span>GND</span>
+                    <b>→</b>
+                    <span>ESP32 GND</span>
+                </div>
 
-  </footer>
+                <div class="wire-line">
+                    <span>SDA</span>
+                    <b>→</b>
+                    <span>ESP32 SDA</span>
+                </div>
+
+                <div class="wire-line">
+                    <span>SCL</span>
+                    <b>→</b>
+                    <span>ESP32 SCL</span>
+                </div>
+            </div>
 
 
-  <!-- REPORT MODAL -->
+            <div class="wire-card">
+                <div class="wire-head">
+                    <b>03</b>
+                    <span>DHT22 TEMPERATURE</span>
+                </div>
 
-  <div id="reportModal" class="modal hidden">
+                <div class="wire-line">
+                    <span>VCC</span>
+                    <b>→</b>
+                    <span>ESP32 3V3</span>
+                </div>
 
-    <div class="report-card" id="reportContent">
+                <div class="wire-line">
+                    <span>GND</span>
+                    <b>→</b>
+                    <span>ESP32 GND</span>
+                </div>
+
+                <div class="wire-line">
+                    <span>DATA</span>
+                    <b>→</b>
+                    <span>ESP32 GPIO</span>
+                </div>
+            </div>
 
 
-      <div class="report-header">
+            <div class="wire-card">
+                <div class="wire-head">
+                    <b>04</b>
+                    <span>PULSE SENSOR</span>
+                </div>
 
-        <div>
-          <h1>HEALTHY HOME</h1>
-          <p>HEALTH MONITORING REPORT</p>
+                <div class="wire-line">
+                    <span>VCC</span>
+                    <b>→</b>
+                    <span>ESP32 3V3</span>
+                </div>
+
+                <div class="wire-line">
+                    <span>GND</span>
+                    <b>→</b>
+                    <span>ESP32 GND</span>
+                </div>
+
+                <div class="wire-line">
+                    <span>SIGNAL</span>
+                    <b>→</b>
+                    <span>ESP32 ANALOG INPUT</span>
+                </div>
+            </div>
+
         </div>
 
-        <div class="report-id">
-          REPORT ID<br />
-          <strong id="reportId">HH-RPT-0001</strong>
+        <div class="wiring-note">
+            Pin numbers are intentionally left as board-specific references until the exact ESP32 board pin assignment is finalized.
         </div>
 
-      </div>
+    </section>
 
 
-      <!-- REPORT PATIENT -->
-
-      <div class="report-patient">
-
-        <div>
-          <span>PATIENT NAME</span>
-          <strong id="reportPatientName">---</strong>
-        </div>
-
-        <div>
-          <span>PATIENT ID</span>
-          <strong id="reportPatientId">---</strong>
-        </div>
-
-        <div>
-          <span>DATE / TIME</span>
-          <strong id="reportDate">---</strong>
-        </div>
-
-      </div>
-
-
-      <!-- REPORT VITALS -->
-
-      <div class="report-vitals">
-
-        <div>
-          <span>HEART RATE</span>
-          <strong id="reportHR">-- BPM</strong>
-        </div>
-
-        <div>
-          <span>SpO₂</span>
-          <strong id="reportSpO2">-- %</strong>
-        </div>
-
-        <div>
-          <span>TEMPERATURE</span>
-          <strong id="reportTemp">-- °C</strong>
-        </div>
-
-      </div>
-
-
-      <!-- ECG REPORT -->
-
-      <div class="report-ecg">
-
-        <div class="report-title">
-
-          <h2>ECG WAVEFORM</h2>
-          <span>10 SECOND CAPTURE</span>
-
-        </div>
-
-
-        <div class="report-ecg-box">
-
-          <canvas id="reportEcgCanvas"></canvas>
-
-        </div>
-
-      </div>
-
-
-      <!-- REPORT STATUS -->
-
-      <div class="report-status">
-
-        <span>LEAD STATUS</span>
-        <strong id="reportLead">NO SIGNAL</strong>
-
-        <span>SIGNAL QUALITY</span>
-        <strong id="reportQuality">0%</strong>
-
-      </div>
-
-
-      <div class="report-note">
-
-        This report contains recorded sensor data from the Healthy Home monitoring
-        system. It is intended for monitoring and educational use and is not a
-        medical diagnosis.
-
-      </div>
-
+    <div class="notice">
+        <b>EXPERIMENTAL PROTOTYPE</b>
+        Healthy Home is an educational electronics and software prototype.
+        Sensor readings and ECG visualization are not a medical diagnosis.
     </div>
 
+</main>
 
-    <!-- MODAL ACTIONS -->
+<footer>
+    HEALTHY HOME • ESP32 BIOMEDICAL MONITORING SYSTEM
+</footer>
 
-    <div class="modal-actions">
-
-      <button id="downloadReport">
-        DOWNLOAD PDF
-      </button>
-
-      <button id="closeReport">
-        CLOSE
-      </button>
-
-    </div>
-
-  </div>
-
-
-  <script src="script.js"></script>
-
+<script src="script.js"></script>
 </body>
 </html>
