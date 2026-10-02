@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Healthy Home | Health Monitoring System</title>
 
   <link rel="stylesheet" href="style.css" />
@@ -15,8 +16,10 @@
 <body>
 
   <header class="topbar">
+
     <div class="brand">
       <div class="brand-mark">HH</div>
+
       <div>
         <h1>HEALTHY HOME</h1>
         <span>SMART HEALTH MONITORING SYSTEM</span>
@@ -28,11 +31,16 @@
       <span id="connectionText">DEVICE NOT CONNECTED</span>
       <button id="connectBtn">CONNECT DEVICE</button>
     </div>
+
   </header>
+
 
   <main class="dashboard">
 
+    <!-- PATIENT -->
+
     <section class="patient-bar">
+
       <div>
         <label>PATIENT ID</label>
         <input id="patientId" type="text" placeholder="HH-001" />
@@ -47,73 +55,89 @@
         <span class="pulse-indicator"></span>
         LIVE MONITORING
       </div>
+
     </section>
+
+
+    <!-- VITALS -->
 
     <section class="vitals">
 
+      <!-- HEART RATE -->
+
       <article class="vital-card">
+
         <div class="vital-head">
           <span>HEART RATE</span>
           <small>BPM</small>
         </div>
+
         <div class="vital-value">
           <strong id="heartRate">--</strong>
           <span>BPM</span>
         </div>
+
         <div class="mini-line" id="hrLine"></div>
+
         <footer>MAX30102 / PULSE SENSOR</footer>
+
       </article>
 
+
+      <!-- SpO2 -->
+
       <article class="vital-card">
+
         <div class="vital-head">
           <span>SpO₂</span>
           <small>OXYGEN</small>
         </div>
+
         <div class="vital-value">
           <strong id="spo2">--</strong>
           <span>%</span>
         </div>
+
         <div class="oxygen-bar">
           <div id="oxygenFill"></div>
         </div>
+
         <footer>MAX30102</footer>
+
       </article>
 
+
+      <!-- TEMPERATURE -->
+
       <article class="vital-card">
+
         <div class="vital-head">
           <span>TEMPERATURE</span>
           <small>BODY</small>
         </div>
+
         <div class="vital-value">
           <strong id="temperature">--</strong>
           <span>°C</span>
         </div>
-        <div class="mini-line"></div>
-        <footer>DHT22</footer>
-      </article>
 
-      <article class="vital-card">
-        <div class="vital-head">
-          <span>HUMIDITY</span>
-          <small>ROOM</small>
-        </div>
-        <div class="vital-value">
-          <strong id="humidity">--</strong>
-          <span>%</span>
-        </div>
-        <div class="humidity-ring">
-          <div id="humidityRing"></div>
-        </div>
+        <div class="mini-line"></div>
+
         <footer>DHT22</footer>
+
       </article>
 
     </section>
+
+
+    <!-- ECG + SIDE PANEL -->
 
     <section class="monitor-grid">
 
       <div class="ecg-panel">
 
         <div class="panel-header">
+
           <div>
             <h2>ECG MONITOR</h2>
             <span id="leadStatus">LEAD STATUS: NO SIGNAL</span>
@@ -124,17 +148,23 @@
             <span>10 mm/mV</span>
             <button id="captureBtn">CAPTURE 10 SEC</button>
           </div>
+
         </div>
 
+
         <div class="ecg-screen">
+
           <canvas id="ecgChart"></canvas>
 
           <div class="signal-overlay" id="signalOverlay">
             <span>WAITING FOR ECG SIGNAL</span>
           </div>
+
         </div>
 
+
         <div class="ecg-footer">
+
           <div>
             <span>SAMPLING</span>
             <strong id="samplingRate">250 Hz</strong>
@@ -154,13 +184,21 @@
             <span>STATUS</span>
             <strong id="ecgState">STANDBY</strong>
           </div>
+
         </div>
 
       </div>
 
+
+      <!-- SIDE PANEL -->
+
       <aside class="side-panel">
 
+
+        <!-- SIGNAL QUALITY -->
+
         <div class="side-card">
+
           <h3>SIGNAL QUALITY</h3>
 
           <div class="quality-meter">
@@ -171,9 +209,14 @@
             <span id="qualityText">NO SIGNAL</span>
             <strong id="qualityPercent">0%</strong>
           </div>
+
         </div>
 
+
+        <!-- LEAD DETECTION -->
+
         <div class="side-card">
+
           <h3>LEAD DETECTION</h3>
 
           <div class="lead-row">
@@ -185,9 +228,14 @@
             <span>LO−</span>
             <strong id="loMinus">---</strong>
           </div>
+
         </div>
 
+
+        <!-- DEVICE -->
+
         <div class="side-card">
+
           <h3>DEVICE</h3>
 
           <div class="device-row">
@@ -199,9 +247,14 @@
             <span>DATA LINK</span>
             <strong id="dataLink">WAITING</strong>
           </div>
+
         </div>
 
+
+        <!-- ACTIONS -->
+
         <div class="side-card action-card">
+
           <button id="reportBtn" class="primary-btn">
             GENERATE ECG REPORT
           </button>
@@ -209,26 +262,36 @@
           <button id="csvBtn" class="secondary-btn">
             EXPORT ECG CSV
           </button>
+
         </div>
 
       </aside>
 
     </section>
 
+
+    <!-- RECORDS -->
+
     <section class="records-section">
 
       <div class="section-heading">
+
         <div>
           <h2>RECENT RECORDS</h2>
           <span>Captured patient monitoring sessions</span>
         </div>
 
         <strong id="recordCount">0 RECORDS</strong>
+
       </div>
 
+
       <div class="table-wrap">
+
         <table>
+
           <thead>
+
             <tr>
               <th>TIME</th>
               <th>PATIENT</th>
@@ -237,27 +300,40 @@
               <th>TEMP</th>
               <th>ECG</th>
             </tr>
+
           </thead>
 
           <tbody id="recordsBody"></tbody>
+
         </table>
+
       </div>
 
     </section>
 
   </main>
 
+
+  <!-- FOOTER -->
+
   <footer class="footer">
+
     <span>HEALTHY HOME</span>
     <span>SMART HEALTH MONITORING SYSTEM</span>
     <span id="clock">--:--:--</span>
+
   </footer>
+
+
+  <!-- REPORT MODAL -->
 
   <div id="reportModal" class="modal hidden">
 
     <div class="report-card" id="reportContent">
 
+
       <div class="report-header">
+
         <div>
           <h1>HEALTHY HOME</h1>
           <p>HEALTH MONITORING REPORT</p>
@@ -267,9 +343,14 @@
           REPORT ID<br />
           <strong id="reportId">HH-RPT-0001</strong>
         </div>
+
       </div>
 
+
+      <!-- REPORT PATIENT -->
+
       <div class="report-patient">
+
         <div>
           <span>PATIENT NAME</span>
           <strong id="reportPatientName">---</strong>
@@ -284,9 +365,14 @@
           <span>DATE / TIME</span>
           <strong id="reportDate">---</strong>
         </div>
+
       </div>
 
+
+      <!-- REPORT VITALS -->
+
       <div class="report-vitals">
+
         <div>
           <span>HEART RATE</span>
           <strong id="reportHR">-- BPM</strong>
@@ -302,45 +388,70 @@
           <strong id="reportTemp">-- °C</strong>
         </div>
 
-        <div>
-          <span>HUMIDITY</span>
-          <strong id="reportHumidity">-- %</strong>
-        </div>
       </div>
+
+
+      <!-- ECG REPORT -->
 
       <div class="report-ecg">
+
         <div class="report-title">
+
           <h2>ECG WAVEFORM</h2>
           <span>10 SECOND CAPTURE</span>
+
         </div>
+
 
         <div class="report-ecg-box">
+
           <canvas id="reportEcgCanvas"></canvas>
+
         </div>
+
       </div>
 
+
+      <!-- REPORT STATUS -->
+
       <div class="report-status">
+
         <span>LEAD STATUS</span>
         <strong id="reportLead">NO SIGNAL</strong>
 
         <span>SIGNAL QUALITY</span>
         <strong id="reportQuality">0%</strong>
+
       </div>
 
+
       <div class="report-note">
+
         This report contains recorded sensor data from the Healthy Home monitoring
         system. It is intended for monitoring and educational use and is not a
         medical diagnosis.
+
       </div>
 
     </div>
 
+
+    <!-- MODAL ACTIONS -->
+
     <div class="modal-actions">
-      <button id="downloadReport">DOWNLOAD PDF</button>
-      <button id="closeReport">CLOSE</button>
+
+      <button id="downloadReport">
+        DOWNLOAD PDF
+      </button>
+
+      <button id="closeReport">
+        CLOSE
+      </button>
+
     </div>
 
   </div>
+
 
   <script src="script.js"></script>
 
