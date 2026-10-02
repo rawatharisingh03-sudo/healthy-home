@@ -1,1128 +1,848 @@
-// ======================================================
-// HEALTHY HOME - SMART HEALTH MONITORING SYSTEM
-// ESP32 + MAX30102 + AD8232 + DHT22
-// Humidity removed
-// ======================================================
-
 let port = null;
 let reader = null;
-let connected = false;
+let buffer = "";
 
 let ecgData = [];
-let records = [];
+let recording = false;
+let recordingStart = 0;
+let recordingDuration = 10;
 
-let currentData = {
+let latest = {
     heartRate: null,
     spo2: null,
-    temperature: null,
-    ecg: null
+    temperature: null
 };
 
-// ======================================================
-// ELEMENTS
-// ======================================================
+const canvas = document.getElementById("ecgCanvas");
+const ctx = canvas.getContext("2d");
 
-const connectBtn = document.getElementById("connectBtn");
-const statusDot = document.getElementById("statusDot");
-const connectionText = document.getElementById("connectionText");
+function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    const ratio = window.devicePixelRatio || 1;
 
-const heartRateEl = document.getElementById("heartRate");
-const spo2El = document.getElementById("spo2");
-const temperatureEl = document.getElementById("temperature");
+    canvas.width = rect.width * ratio;
+    canvas.height = rect.height * ratio;
 
-const deviceState = document.getElementById("deviceState");
-const dataLink = document.getElementById("dataLink");
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
 
-const leadStatus = document.getElementById("leadStatus");
-const signalOverlay = document.getElementById("signalOverlay");
-
-const sampleCount = document.getElementById("sampleCount");
-const ecgState = document.getElementById("ecgState");
-
-const patientId = document.getElementById("patientId");
-const patientName = document.getElementById("patientName");
-
-const recordsBody = document.getElementById("recordsBody");
-const recordCount = document.getElementById("recordCount");
-
-const clock = document.getElementById("clock");
-
-// ======================================================
-// CLOCK
-// ======================================================
-
-function updateClock() {
-
-    const now = new Date();
-
-    clock.textContent = now.toLocaleTimeString("en-IN", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit"
-    });
+    drawECG();
 }
 
-setInterval(updateClock, 1000);
-updateClock();
+window.addEventListener("resize", resizeCanvas);
+setTimeout(resizeCanvas, 100);
 
-// ======================================================
-// CONNECT ESP32
-// ======================================================
 
-if (connectBtn) {
+function setConnection(connected) {
+    const dot = document.getElementById("statusDot");
+    const status = document.getElementById("connectionStatus");
+    const button = document.getElementById("connectBtn");
 
-    connectBtn.addEventListener("click", async () => {
-
-        if (connected) {
-            await disconnectDevice();
-        } else {
-            await connectDevice();
-        }
-
-    });
-
+    if (connected) {
+        dot.style.background = "#3c795f";
+        status.textContent = "ESP32 CONNECTED";
+        button.textContent = "DISCONNECT ESP32";
+    } else {
+        dot.style.background = "#89949a";
+        status.textContent = "ESP32 DISCONNECTED";
+        button.textContent = "CONNECT ESP32";
+    }
 }
 
-// ======================================================
-// CONNECT
-// ======================================================
 
-async function connectDevice() {
+document.getElementById("connectBtn").addEventListener("click", async () => {
+
+    if (port) {
+        await disconnectESP32();
+        return;
+    }
 
     if (!("serial" in navigator)) {
-
-        alert(
-            "Web Serial is not supported. Please open Healthy Home in Google Chrome or Microsoft Edge."
-        );
-
+        alert("Web Serial requires Chrome or Edge.");
         return;
     }
 
     try {
-
         port = await navigator.serial.requestPort();
 
         await port.open({
             baudRate: 115200
         });
 
-        connected = true;
-
         setConnection(true);
-
         readSerial();
 
     } catch (error) {
-
         console.error(error);
-
+        port = null;
         setConnection(false);
-
     }
-}
+});
 
-// ======================================================
-// DISCONNECT
-// ======================================================
 
-async function disconnectDevice() {
-
-    connected = false;
+async function disconnectESP32() {
 
     try {
 
         if (reader) {
             await reader.cancel();
+            reader.releaseLock();
             reader = null;
         }
 
         if (port) {
             await port.close();
-            port = null;
         }
 
     } catch (error) {
-
         console.error(error);
-
     }
 
+    port = null;
     setConnection(false);
 }
 
-// ======================================================
-// CONNECTION UI
-// ======================================================
-
-function setConnection(state) {
-
-    connected = state;
-
-    if (state) {
-
-        connectionText.textContent = "DEVICE CONNECTED";
-
-        deviceState.textContent = "ONLINE";
-
-        dataLink.textContent = "ACTIVE";
-
-        connectBtn.textContent = "DISCONNECT";
-
-        statusDot.classList.add("connected");
-
-        ecgState.textContent = "MONITORING";
-
-    } else {
-
-        connectionText.textContent = "DEVICE NOT CONNECTED";
-
-        deviceState.textContent = "OFFLINE";
-
-        dataLink.textContent = "WAITING";
-
-        connectBtn.textContent = "CONNECT DEVICE";
-
-        statusDot.classList.remove("connected");
-
-        ecgState.textContent = "STANDBY";
-
-    }
-}
-
-// ======================================================
-// SERIAL READING
-// ======================================================
 
 async function readSerial() {
 
-    if (!port || !port.readable) return;
-
     const decoder = new TextDecoder();
 
-    let buffer = "";
+    while (port && port.readable) {
 
-    reader = port.readable.getReader();
+        reader = port.readable.getReader();
+
+        try {
+
+            while (true) {
+
+                const result = await reader.read();
+
+                if (result.done) break;
+
+                if (result.value) {
+
+                    buffer += decoder.decode(
+                        result.value,
+                        { stream: true }
+                    );
+
+                    const lines = buffer.split("\n");
+
+                    buffer = lines.pop();
+
+                    lines.forEach(line => {
+                        processData(line.trim());
+                    });
+                }
+            }
+
+        } catch (error) {
+
+            console.error(error);
+
+        } finally {
+
+            reader.releaseLock();
+            reader = null;
+        }
+    }
+}
+
+
+function processData(line) {
+
+    if (!line) return;
+
+    /*
+      ESP32 expected format:
+
+      {"heartRate":78,"spo2":98,"temperature":36.7,"ecg":512}
+    */
 
     try {
 
-        while (connected) {
+        const data = JSON.parse(line);
 
-            const { value, done } = await reader.read();
+        if (data.heartRate !== undefined) {
 
-            if (done) break;
+            latest.heartRate = Number(data.heartRate);
 
-            if (!value) continue;
+            document.getElementById("heartRate").textContent =
+                Number.isFinite(latest.heartRate)
+                    ? Math.round(latest.heartRate)
+                    : "--";
+        }
 
-            buffer += decoder.decode(value, {
-                stream: true
-            });
 
-            const lines = buffer.split(/\r?\n/);
+        if (data.spo2 !== undefined) {
 
-            buffer = lines.pop() || "";
+            latest.spo2 = Number(data.spo2);
 
-            for (const line of lines) {
+            document.getElementById("spo2").textContent =
+                Number.isFinite(latest.spo2)
+                    ? Math.round(latest.spo2)
+                    : "--";
+        }
 
-                if (line.trim()) {
-                    parseESP32Data(line.trim());
+
+        if (data.temperature !== undefined) {
+
+            latest.temperature = Number(data.temperature);
+
+            document.getElementById("temperature").textContent =
+                Number.isFinite(latest.temperature)
+                    ? latest.temperature.toFixed(1)
+                    : "--";
+        }
+
+
+        if (data.ecg !== undefined) {
+
+            const value = Number(data.ecg);
+
+            if (Number.isFinite(value)) {
+
+                ecgData.push(value);
+
+                if (ecgData.length > 2500) {
+                    ecgData.shift();
                 }
 
+                document.getElementById("sampleCount").textContent =
+                    ecgData.length;
+
+                updateSignal();
+                drawECG();
+
+                if (recording) {
+
+                    const elapsed =
+                        (Date.now() - recordingStart) / 1000;
+
+                    if (elapsed >= recordingDuration) {
+                        stopRecording();
+                    }
+                }
             }
         }
 
     } catch (error) {
-
-        console.error("Serial error:", error);
-
-        setConnection(false);
-
-    } finally {
-
-        reader.releaseLock();
-        reader = null;
-
+        // Ignore ordinary serial messages.
     }
 }
 
-// ======================================================
-// ESP32 DATA PARSER
-// ======================================================
 
-function parseESP32Data(line) {
+function updateSignal() {
 
-    console.log("ESP32:", line);
+    const quality =
+        document.getElementById("signalQuality");
 
-    // --------------------------------------------------
-    // JSON FORMAT
-    // Example:
-    // {"hr":78,"spo2":98,"temp":36.5,"ecg":512}
-    // --------------------------------------------------
-
-    if (
-        line.startsWith("{") &&
-        line.endsWith("}")
-    ) {
-
-        try {
-
-            const data = JSON.parse(line);
-
-            processData({
-                heartRate:
-                    data.hr ??
-                    data.heartRate ??
-                    data.bpm,
-
-                spo2:
-                    data.spo2 ??
-                    data.SpO2,
-
-                temperature:
-                    data.temp ??
-                    data.temperature,
-
-                ecg:
-                    data.ecg ??
-                    data.ECG
-
-            });
-
-            return;
-
-        } catch (error) {
-
-            console.log("Invalid JSON:", line);
-
-        }
+    if (ecgData.length < 20) {
+        quality.textContent = "--";
+        return;
     }
 
-    // --------------------------------------------------
-    // CSV FORMAT
-    // Example:
-    // 78,98,36.5,512
-    // --------------------------------------------------
+    const data = ecgData.slice(-250);
 
-    const parts = line.split(",");
+    let min = Infinity;
+    let max = -Infinity;
 
-    if (parts.length >= 4) {
-
-        const values = parts.map(v => Number(v.trim()));
-
-        if (values.every(v => Number.isFinite(v))) {
-
-            processData({
-
-                heartRate: values[0],
-
-                spo2: values[1],
-
-                temperature: values[2],
-
-                ecg: values[3]
-
-            });
-
-            return;
-        }
-    }
-
-    // --------------------------------------------------
-    // KEY VALUE FORMAT
-    // Example:
-    // HR:78,SpO2:98,TEMP:36.5,ECG:512
-    // --------------------------------------------------
-
-    const data = {};
-
-    line.split(",").forEach(part => {
-
-        const separator =
-            part.includes(":")
-                ? ":"
-                : "=";
-
-        const pieces = part.split(separator);
-
-        if (pieces.length < 2) return;
-
-        const key =
-            pieces[0]
-                .trim()
-                .toLowerCase();
-
-        const value =
-            Number(pieces[1].trim());
-
-        if (!Number.isFinite(value)) return;
-
-        if (
-            key === "hr" ||
-            key === "bpm" ||
-            key === "heartrate" ||
-            key === "heart_rate"
-        ) {
-            data.heartRate = value;
-        }
-
-        else if (
-            key === "spo2" ||
-            key === "sp02" ||
-            key === "oxygen"
-        ) {
-            data.spo2 = value;
-        }
-
-        else if (
-            key === "temp" ||
-            key === "temperature"
-        ) {
-            data.temperature = value;
-        }
-
-        else if (key === "ecg") {
-            data.ecg = value;
-        }
-
+    data.forEach(v => {
+        if (v < min) min = v;
+        if (v > max) max = v;
     });
 
-    if (Object.keys(data).length > 0) {
-        processData(data);
+    const range = max - min;
+
+    if (range < 5) {
+        quality.textContent = "LOW";
+    } else if (range < 30) {
+        quality.textContent = "FAIR";
+    } else {
+        quality.textContent = "GOOD";
     }
 }
 
-// ======================================================
-// PROCESS DATA
-// ======================================================
-
-function processData(data) {
-
-    if (Number.isFinite(Number(data.heartRate))) {
-
-        currentData.heartRate =
-            Number(data.heartRate);
-
-        heartRateEl.textContent =
-            Math.round(currentData.heartRate);
-
-    }
-
-    if (Number.isFinite(Number(data.spo2))) {
-
-        currentData.spo2 =
-            Number(data.spo2);
-
-        spo2El.textContent =
-            Math.round(currentData.spo2);
-
-        updateOxygenBar(currentData.spo2);
-
-    }
-
-    if (Number.isFinite(Number(data.temperature))) {
-
-        currentData.temperature =
-            Number(data.temperature);
-
-        temperatureEl.textContent =
-            currentData.temperature.toFixed(1);
-
-    }
-
-    if (Number.isFinite(Number(data.ecg))) {
-
-        currentData.ecg =
-            Number(data.ecg);
-
-        addECGPoint(currentData.ecg);
-
-    }
-
-    updateSignalStatus();
-
-}
-
-// ======================================================
-// OXYGEN BAR
-// ======================================================
-
-function updateOxygenBar(value) {
-
-    const fill =
-        document.getElementById("oxygenFill");
-
-    if (!fill) return;
-
-    let percent =
-        Math.max(0, Math.min(100, value));
-
-    fill.style.width =
-        percent + "%";
-}
-
-// ======================================================
-// ECG
-// ======================================================
-
-function addECGPoint(value) {
-
-    ecgData.push(Number(value));
-
-    if (ecgData.length > 500) {
-        ecgData.shift();
-    }
-
-    sampleCount.textContent =
-        ecgData.length;
-
-    drawECG();
-
-}
-
-// ======================================================
-// ECG CANVAS
-// ======================================================
 
 function drawECG() {
 
-    const canvas =
-        document.getElementById("ecgChart");
+    const rect = canvas.getBoundingClientRect();
 
-    if (!canvas) return;
+    const width = rect.width;
+    const height = rect.height;
 
-    const parent =
-        canvas.parentElement;
+    ctx.clearRect(0, 0, width, height);
 
-    canvas.width =
-        parent.clientWidth;
+    if (ecgData.length < 2) {
 
-    canvas.height =
-        parent.clientHeight;
+        ctx.fillStyle = "#69767d";
+        ctx.font = "12px Arial";
 
-    const ctx =
-        canvas.getContext("2d");
+        ctx.fillText(
+            "WAITING FOR ECG SIGNAL...",
+            22,
+            height / 2
+        );
 
-    const width =
-        canvas.width;
-
-    const height =
-        canvas.height;
-
-    ctx.clearRect(
-        0,
-        0,
-        width,
-        height
-    );
-
-    if (ecgData.length < 2) return;
-
-    let min =
-        Math.min(...ecgData);
-
-    let max =
-        Math.max(...ecgData);
-
-    if (max === min) {
-
-        max += 1;
-        min -= 1;
-
+        return;
     }
+
+    const data = ecgData.slice(-1000);
+
+    let min = Math.min(...data);
+    let max = Math.max(...data);
+
+    if (min === max) {
+        min -= 1;
+        max += 1;
+    }
+
+    const padding = 18;
 
     ctx.beginPath();
 
-    ecgData.forEach((value, index) => {
+    data.forEach((value, index) => {
 
         const x =
-            index *
-            (width / (ecgData.length - 1));
+            padding +
+            (index / (data.length - 1)) *
+            (width - padding * 2);
 
         const normalized =
-            (value - min) /
-            (max - min);
+            (value - min) / (max - min);
 
         const y =
             height -
+            padding -
             normalized *
-            (height - 20) -
-            10;
+            (height - padding * 2);
 
         if (index === 0) {
             ctx.moveTo(x, y);
         } else {
             ctx.lineTo(x, y);
         }
-
     });
 
-    ctx.strokeStyle =
-        "#16d9ff";
-
-    ctx.lineWidth = 2;
-
-    ctx.lineJoin =
-        "round";
-
-    ctx.lineCap =
-        "round";
-
+    ctx.strokeStyle = "#1c536c";
+    ctx.lineWidth = 1.4;
     ctx.stroke();
-
-    signalOverlay.style.display =
-        "none";
-
 }
 
-// ======================================================
-// ECG STATUS
-// ======================================================
 
-function updateSignalStatus() {
+document.getElementById("startRecord")
+    .addEventListener("click", () => {
 
-    if (ecgData.length > 5) {
+        recordingDuration =
+            Number(document.getElementById("duration").value);
 
-        leadStatus.textContent =
-            "LEAD STATUS: SIGNAL DETECTED";
+        ecgData = [];
 
-        leadStatus.classList.add("active");
+        document.getElementById("sampleCount")
+            .textContent = "0";
 
-        document.getElementById("ecgState")
-            .textContent = "ACTIVE";
+        recording = true;
+        recordingStart = Date.now();
 
-    }
+        document.getElementById("startRecord")
+            .disabled = true;
 
+        document.getElementById("stopRecord")
+            .disabled = false;
+    });
+
+
+document.getElementById("stopRecord")
+    .addEventListener("click", stopRecording);
+
+
+function stopRecording() {
+
+    if (!recording) return;
+
+    recording = false;
+
+    document.getElementById("startRecord")
+        .disabled = false;
+
+    document.getElementById("stopRecord")
+        .disabled = true;
+
+    saveRecord();
 }
 
-// ======================================================
-// CAPTURE 10 SEC
-// ======================================================
-
-const captureBtn =
-    document.getElementById("captureBtn");
-
-if (captureBtn) {
-
-    captureBtn.addEventListener(
-        "click",
-        () => {
-
-            ecgState.textContent =
-                "CAPTURING";
-
-            let seconds = 0;
-
-            const timer =
-                setInterval(() => {
-
-                    seconds++;
-
-                    document.getElementById(
-                        "captureTime"
-                    ).textContent =
-                        "00:" +
-                        String(seconds)
-                            .padStart(2, "0");
-
-                    if (seconds >= 10) {
-
-                        clearInterval(timer);
-
-                        ecgState.textContent =
-                            "CAPTURED";
-
-                    }
-
-                }, 1000);
-
-        }
-    );
-
-}
-
-// ======================================================
-// SAVE RECORD
-// ======================================================
 
 function saveRecord() {
 
+    const patientId =
+        document.getElementById("patientId").value.trim()
+        || "UNKNOWN";
+
+    const now = new Date();
+
     const record = {
 
-        time:
-            new Date().toLocaleString("en-IN"),
+        id:
+            "REC-" +
+            now.getFullYear() +
+            String(now.getMonth() + 1).padStart(2, "0") +
+            String(now.getDate()).padStart(2, "0") +
+            "-" +
+            Math.floor(1000 + Math.random() * 9000),
 
-        patient:
-            patientName.value || "---",
+        date: now.toLocaleString(),
 
-        patientId:
-            patientId.value || "---",
+        heartRate: latest.heartRate,
+        spo2: latest.spo2,
+        temperature: latest.temperature,
 
-        heartRate:
-            currentData.heartRate ?? "--",
+        samples: ecgData.length,
 
-        spo2:
-            currentData.spo2 ?? "--",
-
-        temperature:
-            currentData.temperature ?? "--"
-
+        patientId
     };
+
+    const records =
+        JSON.parse(
+            localStorage.getItem("healthyHomeRecords") || "[]"
+        );
 
     records.unshift(record);
 
-    if (records.length > 50) {
-        records.pop();
-    }
+    localStorage.setItem(
+        "healthyHomeRecords",
+        JSON.stringify(records)
+    );
 
-    renderRecords();
-
+    loadRecords();
 }
 
-// ======================================================
-// RECORDS
-// ======================================================
 
-function renderRecords() {
+function loadRecords() {
 
-    if (!recordsBody) return;
+    const body =
+        document.getElementById("recordsBody");
 
-    recordsBody.innerHTML = "";
+    const records =
+        JSON.parse(
+            localStorage.getItem("healthyHomeRecords") || "[]"
+        );
+
+    body.innerHTML = "";
 
     records.forEach(record => {
 
-        const row =
-            document.createElement("tr");
+        const row = document.createElement("tr");
 
         row.innerHTML = `
-
-            <td>${escapeHTML(record.time)}</td>
-
-            <td>
-                ${escapeHTML(
-                    record.patient
-                )}
-            </td>
-
-            <td>
-                ${escapeHTML(
-                    record.heartRate
-                )} BPM
-            </td>
-
-            <td>
-                ${escapeHTML(
-                    record.spo2
-                )} %
-            </td>
-
-            <td>
-                ${escapeHTML(
-                    record.temperature
-                )} °C
-            </td>
-
-            <td>
-                RECORDED
-            </td>
-
+            <td>${record.id}</td>
+            <td>${record.date}</td>
+            <td>${format(record.heartRate)}</td>
+            <td>${format(record.spo2)}</td>
+            <td>${format(record.temperature)}</td>
+            <td>${record.samples}</td>
         `;
 
-        recordsBody.appendChild(row);
-
+        body.appendChild(row);
     });
 
-    recordCount.textContent =
-        records.length + " RECORDS";
-
+    document.getElementById("recordCount")
+        .textContent = records.length + " RECORDS";
 }
 
-// ======================================================
-// REPORT
-// ======================================================
 
-const reportBtn =
-    document.getElementById("reportBtn");
+function format(value) {
 
-if (reportBtn) {
+    if (value === null || value === undefined) {
+        return "--";
+    }
 
-    reportBtn.addEventListener(
-        "click",
-        generateReport
-    );
-
+    return value;
 }
+
+
+/* ============================
+   ECG REPORT
+   ============================ */
+
+document.getElementById("reportBtn")
+    .addEventListener("click", generateReport);
+
 
 function generateReport() {
 
-    document.getElementById(
-        "reportPatientName"
-    ).textContent =
-        patientName.value || "---";
+    const patientId =
+        document.getElementById("patientId").value.trim();
 
-    document.getElementById(
-        "reportPatientId"
-    ).textContent =
-        patientId.value || "---";
+    const patientName =
+        document.getElementById("patientName").value.trim();
 
-    document.getElementById(
-        "reportDate"
-    ).textContent =
-        new Date().toLocaleString("en-IN");
+    const age =
+        document.getElementById("patientAge").value.trim();
 
-    document.getElementById(
-        "reportHR"
-    ).textContent =
-        currentData.heartRate !== null
-            ? Math.round(currentData.heartRate) + " BPM"
-            : "-- BPM";
+    if (!patientId || !patientName) {
 
-    document.getElementById(
-        "reportSpO2"
-    ).textContent =
-        currentData.spo2 !== null
-            ? Math.round(currentData.spo2) + " %"
-            : "-- %";
+        alert(
+            "Enter Patient ID and Patient Name first."
+        );
 
-    document.getElementById(
-        "reportTemp"
-    ).textContent =
-        currentData.temperature !== null
-            ? currentData.temperature.toFixed(1) + " °C"
-            : "-- °C";
+        return;
+    }
 
-    document.getElementById(
-        "reportId"
-    ).textContent =
-        "HH-RPT-" +
-        Date.now().toString().slice(-6);
+    if (ecgData.length < 20) {
 
-    document.getElementById(
-        "reportLead"
-    ).textContent =
-        ecgData.length > 5
-            ? "SIGNAL DETECTED"
-            : "NO SIGNAL";
+        alert(
+            "Not enough ECG data received."
+        );
 
-    document.getElementById(
-        "reportQuality"
-    ).textContent =
-        ecgData.length > 5
-            ? "GOOD"
-            : "0%";
+        return;
+    }
 
-    document.getElementById(
-        "reportModal"
-    ).classList.remove("hidden");
+    const reportCanvas =
+        document.createElement("canvas");
 
-    drawReportECG();
+    reportCanvas.width = 1800;
+    reportCanvas.height = 520;
+
+    const reportCtx =
+        reportCanvas.getContext("2d");
+
+    drawReportGraph(
+        reportCtx,
+        1800,
+        520
+    );
+
+    const image =
+        reportCanvas.toDataURL("image/png");
+
+    const now = new Date();
+
+    const reportId =
+        "HH-" +
+        now.getFullYear() +
+        "-" +
+        Math.floor(10000 + Math.random() * 90000);
+
+    const report =
+        window.open("", "_blank");
+
+    if (!report) {
+
+        alert("Allow pop-ups to generate the report.");
+        return;
+    }
+
+    report.document.write(`
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<title>Healthy Home ECG Report</title>
+
+<style>
+
+body {
+    margin: 0;
+    background: #eeeae3;
+    color: #202b31;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.page {
+    width: 92%;
+    margin: 25px auto;
+    background: white;
+    padding: 0 22px 30px;
+}
+
+.header {
+    border-top: 6px solid #142b3a;
+    padding: 16px 0;
+}
+
+.header h1 {
+    margin: 0;
+    font-family: Georgia, serif;
+    font-size: 23px;
+}
+
+.header p {
+    color: #68767e;
+    font-size: 9px;
+    margin-top: 5px;
+}
+
+.info {
+    border: 1px solid #ccd4d7;
+    background: #f5f7f7;
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 0;
+}
+
+.info div {
+    padding: 11px;
+    border-right: 1px solid #d5dcdf;
+    border-bottom: 1px solid #d5dcdf;
+    font-size: 10px;
+}
+
+.info b {
+    color: #68767e;
+    margin-right: 7px;
+}
+
+.title {
+    margin-top: 22px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #142b3a;
+}
+
+.graph {
+    border: 1px solid #cbd2d4;
+    margin-top: 8px;
+    padding: 8px;
+}
+
+.graph img {
+    display: block;
+    width: 100%;
+}
+
+.analysis {
+    margin-top: 15px;
+    border: 1px solid #cbd2d4;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.analysis div {
+    padding: 15px;
+}
+
+.analysis h2 {
+    font-family: Georgia, serif;
+    font-size: 14px;
+    margin-top: 0;
+}
+
+.analysis p {
+    font-size: 10px;
+    margin: 7px 0;
+}
+
+.notice {
+    margin-top: 45px;
+    background: #f3f0e9;
+    border-left: 5px solid #a14e45;
+    padding: 12px;
+    font-size: 9px;
+    line-height: 1.6;
+}
+
+.notice b {
+    color: #a14e45;
+}
+
+@media print {
+
+    body {
+        background: white;
+    }
+
+    .page {
+        width: 100%;
+        margin: 0;
+    }
 
 }
 
-// ======================================================
-// REPORT ECG
-// ======================================================
+</style>
 
-function drawReportECG() {
+</head>
 
-    const canvas =
-        document.getElementById(
-            "reportEcgCanvas"
-        );
+<body>
 
-    if (!canvas || ecgData.length < 2)
-        return;
+<div class="page">
 
-    const ctx =
-        canvas.getContext("2d");
+<div class="header">
 
-    const width =
-        canvas.width =
-            canvas.parentElement.clientWidth;
+<h1>
+HEALTHY HOME — 10-SECOND ECG REPORT
+</h1>
 
-    const height =
-        canvas.height = 300;
+<p>
+ESP32 BIOMEDICAL MONITORING SYSTEM • EXPERIMENTAL PROTOTYPE
+</p>
 
-    ctx.clearRect(
-        0,
-        0,
-        width,
-        height
-    );
+</div>
 
-    let min =
-        Math.min(...ecgData);
 
-    let max =
-        Math.max(...ecgData);
+<div class="info">
 
-    if (max === min) {
+<div><b>RECORD ID</b>${reportId}</div>
+<div><b>PATIENT ID</b>${patientId}</div>
+<div><b>PATIENT NAME</b>${patientName}</div>
 
-        max += 1;
+<div><b>AGE</b>${age || "--"}</div>
+<div><b>DATE / TIME</b>${now.toLocaleString()}</div>
+<div><b>DEVICE</b>ESP32 + AD8232</div>
+
+<div><b>HEART RATE</b>${format(latest.heartRate)} BPM</div>
+<div><b>SpO₂</b>${format(latest.spo2)} %</div>
+<div><b>TEMPERATURE</b>${format(latest.temperature)} °C</div>
+
+<div><b>SAMPLE RATE</b>250 Hz</div>
+<div><b>DURATION</b>10 Seconds</div>
+<div><b>SAMPLES</b>${ecgData.length}</div>
+
+</div>
+
+
+<div class="title">
+ECG RHYTHM STRIP — AD8232
+</div>
+
+<div class="graph">
+<img src="${image}">
+</div>
+
+
+<div class="analysis">
+
+<div>
+
+<h2>RECORDED PARAMETERS</h2>
+
+<p>
+Signal Quality:
+<b>${document.getElementById("signalQuality").textContent}</b>
+</p>
+
+<p>
+Sampling Rate:
+<b>250 Hz</b>
+</p>
+
+<p>
+Recorded Samples:
+<b>${ecgData.length}</b>
+</p>
+
+</div>
+
+<div>
+
+<h2>SYSTEM OBSERVATION</h2>
+
+<p>
+ECG electrical waveform successfully captured by the prototype.
+</p>
+
+<p>
+This software does not perform automated clinical diagnosis.
+</p>
+
+</div>
+
+</div>
+
+
+<div class="notice">
+
+<b>EXPERIMENTAL PROTOTYPE:</b>
+
+This report is generated by an educational electronics and software
+prototype. The measurements and ECG visualization are for engineering
+and demonstration purposes only and must not be treated as a medical diagnosis.
+
+</div>
+
+</div>
+
+<script>
+window.onload = function() {
+    window.print();
+};
+<\/script>
+
+</body>
+</html>
+
+    `);
+
+    report.document.close();
+}
+
+
+function drawReportGraph(ctx, width, height) {
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.strokeStyle = "#ddd7cd";
+    ctx.lineWidth = 1;
+
+    for (let x = 0; x < width; x += 25) {
+
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, height);
+        ctx.stroke();
+    }
+
+    for (let y = 0; y < height; y += 25) {
+
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(width, y);
+        ctx.stroke();
+    }
+
+    const data = ecgData.slice(-2500);
+
+    if (data.length < 2) return;
+
+    let min = Math.min(...data);
+    let max = Math.max(...data);
+
+    if (min === max) {
         min -= 1;
-
+        max += 1;
     }
 
     ctx.beginPath();
 
-    ecgData.forEach((value, index) => {
+    data.forEach((value, index) => {
 
         const x =
-            index *
-            (width / (ecgData.length - 1));
+            12 +
+            (index / (data.length - 1)) *
+            (width - 24);
+
+        const normalized =
+            (value - min) / (max - min);
 
         const y =
             height -
-            (
-                (value - min) /
-                (max - min)
-            ) *
-            (height - 20) -
-            10;
+            25 -
+            normalized *
+            (height - 50);
 
         if (index === 0) {
             ctx.moveTo(x, y);
         } else {
             ctx.lineTo(x, y);
         }
-
     });
 
-    ctx.strokeStyle =
-        "#16d9ff";
-
+    ctx.strokeStyle = "#183f52";
     ctx.lineWidth = 2;
 
     ctx.stroke();
-
 }
 
-// ======================================================
-// CLOSE REPORT
-// ======================================================
 
-const closeReport =
-    document.getElementById("closeReport");
-
-if (closeReport) {
-
-    closeReport.addEventListener(
-        "click",
-        () => {
-
-            document
-                .getElementById("reportModal")
-                .classList.add("hidden");
-
-        }
-    );
-
-}
-
-// ======================================================
-// DOWNLOAD PDF
-// ======================================================
-
-const downloadReport =
-    document.getElementById(
-        "downloadReport"
-    );
-
-if (downloadReport) {
-
-    downloadReport.addEventListener(
-        "click",
-        async () => {
-
-            const report =
-                document.getElementById(
-                    "reportContent"
-                );
-
-            if (
-                typeof html2canvas ===
-                "undefined" ||
-                !window.jspdf
-            ) {
-
-                window.print();
-
-                return;
-
-            }
-
-            const canvas =
-                await html2canvas(report, {
-                    scale: 2,
-                    backgroundColor: "#ffffff"
-                });
-
-            const image =
-                canvas.toDataURL(
-                    "image/png"
-                );
-
-            const {
-                jsPDF
-            } = window.jspdf;
-
-            const pdf =
-                new jsPDF(
-                    "p",
-                    "mm",
-                    "a4"
-                );
-
-            const pageWidth =
-                pdf.internal.pageSize.getWidth();
-
-            const pageHeight =
-                pdf.internal.pageSize.getHeight();
-
-            const ratio =
-                Math.min(
-                    pageWidth / canvas.width,
-                    pageHeight / canvas.height
-                );
-
-            const imgWidth =
-                canvas.width * ratio;
-
-            const imgHeight =
-                canvas.height * ratio;
-
-            pdf.addImage(
-                image,
-                "PNG",
-                (pageWidth - imgWidth) / 2,
-                10,
-                imgWidth,
-                imgHeight
-            );
-
-            pdf.save(
-                "Healthy-Home-Report.pdf"
-            );
-
-        }
-    );
-
-}
-
-// ======================================================
-// CSV EXPORT
-// ======================================================
-
-const csvBtn =
-    document.getElementById("csvBtn");
-
-if (csvBtn) {
-
-    csvBtn.addEventListener(
-        "click",
-        exportCSV
-    );
-
-}
-
-function exportCSV() {
-
-    if (ecgData.length === 0) {
-
-        alert("No ECG data available.");
-
-        return;
-
-    }
-
-    let csv =
-        "Sample,ECG\n";
-
-    ecgData.forEach(
-        (value, index) => {
-
-            csv +=
-                `${index + 1},${value}\n`;
-
-        }
-    );
-
-    const blob =
-        new Blob(
-            [csv],
-            {
-                type: "text/csv"
-            }
-        );
-
-    const url =
-        URL.createObjectURL(blob);
-
-    const a =
-        document.createElement("a");
-
-    a.href = url;
-
-    a.download =
-        "Healthy-Home-ECG.csv";
-
-    a.click();
-
-    URL.revokeObjectURL(url);
-
-}
-
-// ======================================================
-// HTML SAFETY
-// ======================================================
-
-function escapeHTML(value) {
-
-    return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-
-}
-
-// ======================================================
-// RESIZE ECG
-// ======================================================
-
-window.addEventListener(
-    "resize",
-    () => {
-
-        drawECG();
-
-    }
-);
-
-// ======================================================
-// SERIAL DISCONNECT EVENT
-// ======================================================
-
-if ("serial" in navigator) {
-
-    navigator.serial.addEventListener(
-        "disconnect",
-        () => {
-
-            connected = false;
-
-            setConnection(false);
-
-        }
-    );
-
-}
-
-// ======================================================
-// INITIAL STATE
-// ======================================================
-
-setConnection(false);
-
-console.log(
-    "Healthy Home dashboard initialized."
-);
+loadRecords();
