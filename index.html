@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Healthy Home | Biomedical Monitoring System</title>
-<link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Healthy Home | Biomedical Monitoring System</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -26,286 +26,163 @@
 
 <main>
 
-    <!-- PATIENT -->
-    <section class="panel">
-        <div class="panel-title">PATIENT INFORMATION</div>
+<section class="panel">
+    <div class="panel-title">PATIENT INFORMATION</div>
 
-        <div class="patient-grid">
-            <div>
-                <label>Patient ID</label>
-                <input id="patientId" type="text" placeholder="Enter patient ID">
-            </div>
-
-            <div>
-                <label>Patient Name</label>
-                <input id="patientName" type="text" placeholder="Enter patient name">
-            </div>
-
-            <div>
-                <label>Age</label>
-                <input id="patientAge" type="number" placeholder="Age">
-            </div>
-
-            <button id="connectBtn">CONNECT ESP32</button>
+    <div class="patient-grid">
+        <div>
+            <label>Patient ID</label>
+            <input id="patientId" type="text" placeholder="Enter patient ID">
         </div>
-    </section>
-
-
-    <!-- VITALS -->
-    <section class="vitals">
-
-        <div class="vital">
-            <div class="sensor-tag">MAX30102</div>
-            <p>HEART RATE</p>
-            <strong id="heartRate">--</strong>
-            <span>BPM</span>
-            <small>Optical pulse sensor</small>
-        </div>
-
-        <div class="vital">
-            <div class="sensor-tag">MAX30102</div>
-            <p>SpO₂</p>
-            <strong id="spo2">--</strong>
-            <span>%</span>
-            <small>Blood oxygen estimation</small>
-        </div>
-
-        <div class="vital">
-            <div class="sensor-tag">DHT22</div>
-            <p>TEMPERATURE</p>
-            <strong id="temperature">--</strong>
-            <span>°C</span>
-            <small>Temperature sensor</small>
-        </div>
-
-        <div class="vital">
-            <div class="sensor-tag">AD8232</div>
-            <p>ECG SIGNAL</p>
-            <strong id="signalQuality">--</strong>
-            <span>QUALITY</span>
-            <small>Electrical heart signal</small>
-        </div>
-
-    </section>
-
-
-    <!-- ECG -->
-    <section class="panel ecg-panel">
-
-        <div class="panel-heading">
-            <div>
-                <h2>ECG MONITOR</h2>
-                <p>AD8232 SINGLE-CHANNEL ECG ACQUISITION</p>
-            </div>
-
-            <div class="technical">
-                <span>RATE <b id="sampleRate">250</b> Hz</span>
-                <span>SAMPLES <b id="sampleCount">0</b></span>
-            </div>
-        </div>
-
-        <div class="ecg-screen">
-            <canvas id="ecgCanvas"></canvas>
-
-            <div class="lead-label">LEAD I • PROTOTYPE</div>
-        </div>
-
-    </section>
-
-
-    <!-- CONTROLS -->
-    <section class="control-panel">
 
         <div>
-            <label>RECORDING</label>
-            <select id="duration">
-                <option value="10">10 Seconds</option>
-                <option value="20">20 Seconds</option>
-                <option value="30">30 Seconds</option>
-            </select>
+            <label>Patient Name</label>
+            <input id="patientName" type="text" placeholder="Enter patient name">
         </div>
 
-        <button id="startRecord">START RECORDING</button>
-        <button id="stopRecord" disabled>STOP RECORDING</button>
-        <button id="reportBtn">GENERATE ECG REPORT</button>
-
-    </section>
-
-
-    <!-- RECORDS -->
-    <section class="panel records">
-
-        <div class="panel-heading">
-            <div>
-                <h2>RECORD HISTORY</h2>
-                <p>Stored measurements from this device</p>
-            </div>
-
-            <b id="recordCount">0 RECORDS</b>
+        <div>
+            <label>Age</label>
+            <input id="patientAge" type="number" placeholder="Age">
         </div>
 
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>RECORD ID</th>
-                        <th>DATE / TIME</th>
-                        <th>HEART RATE</th>
-                        <th>SpO₂</th>
-                        <th>TEMP.</th>
-                        <th>ECG SAMPLES</th>
-                    </tr>
-                </thead>
-
-                <tbody id="recordsBody"></tbody>
-            </table>
-        </div>
-
-    </section>
-
-
-    <!-- WIRING -->
-    <section class="panel wiring">
-
-        <div class="panel-title">SENSOR WIRING REFERENCE</div>
-
-        <div class="wiring-grid">
-
-            <div class="wire-card">
-                <div class="wire-head">
-                    <b>01</b>
-                    <span>AD8232 ECG</span>
-                </div>
-
-                <div class="wire-line">
-                    <span>3.3V</span>
-                    <b>→</b>
-                    <span>ESP32 3V3</span>
-                </div>
-
-                <div class="wire-line">
-                    <span>GND</span>
-                    <b>→</b>
-                    <span>ESP32 GND</span>
-                </div>
-
-                <div class="wire-line">
-                    <span>OUTPUT</span>
-                    <b>→</b>
-                    <span>ESP32 ECG INPUT</span>
-                </div>
-
-                <div class="wire-line">
-                    <span>LO+</span>
-                    <b>→</b>
-                    <span>ESP32 DIGITAL INPUT</span>
-                </div>
-
-                <div class="wire-line">
-                    <span>LO−</span>
-                    <b>→</b>
-                    <span>ESP32 DIGITAL INPUT</span>
-                </div>
-            </div>
-
-
-            <div class="wire-card">
-                <div class="wire-head">
-                    <b>02</b>
-                    <span>MAX30102</span>
-                </div>
-
-                <div class="wire-line">
-                    <span>VIN / 3.3V</span>
-                    <b>→</b>
-                    <span>ESP32 3V3</span>
-                </div>
-
-                <div class="wire-line">
-                    <span>GND</span>
-                    <b>→</b>
-                    <span>ESP32 GND</span>
-                </div>
-
-                <div class="wire-line">
-                    <span>SDA</span>
-                    <b>→</b>
-                    <span>ESP32 SDA</span>
-                </div>
-
-                <div class="wire-line">
-                    <span>SCL</span>
-                    <b>→</b>
-                    <span>ESP32 SCL</span>
-                </div>
-            </div>
-
-
-            <div class="wire-card">
-                <div class="wire-head">
-                    <b>03</b>
-                    <span>DHT22 TEMPERATURE</span>
-                </div>
-
-                <div class="wire-line">
-                    <span>VCC</span>
-                    <b>→</b>
-                    <span>ESP32 3V3</span>
-                </div>
-
-                <div class="wire-line">
-                    <span>GND</span>
-                    <b>→</b>
-                    <span>ESP32 GND</span>
-                </div>
-
-                <div class="wire-line">
-                    <span>DATA</span>
-                    <b>→</b>
-                    <span>ESP32 GPIO</span>
-                </div>
-            </div>
-
-
-            <div class="wire-card">
-                <div class="wire-head">
-                    <b>04</b>
-                    <span>PULSE SENSOR</span>
-                </div>
-
-                <div class="wire-line">
-                    <span>VCC</span>
-                    <b>→</b>
-                    <span>ESP32 3V3</span>
-                </div>
-
-                <div class="wire-line">
-                    <span>GND</span>
-                    <b>→</b>
-                    <span>ESP32 GND</span>
-                </div>
-
-                <div class="wire-line">
-                    <span>SIGNAL</span>
-                    <b>→</b>
-                    <span>ESP32 ANALOG INPUT</span>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="wiring-note">
-            Pin numbers are intentionally left as board-specific references until the exact ESP32 board pin assignment is finalized.
-        </div>
-
-    </section>
-
-
-    <div class="notice">
-        <b>EXPERIMENTAL PROTOTYPE</b>
-        Healthy Home is an educational electronics and software prototype.
-        Sensor readings and ECG visualization are not a medical diagnosis.
+        <button id="connectBtn">CONNECT ESP32</button>
     </div>
+</section>
+
+
+<section class="vitals">
+
+    <div class="vital">
+        <div class="sensor-tag">MAX30102</div>
+        <p>HEART RATE</p>
+        <strong id="heartRate">--</strong>
+        <span>BPM</span>
+        <small>Optical pulse sensor</small>
+    </div>
+
+    <div class="vital">
+        <div class="sensor-tag">MAX30102</div>
+        <p>SpO₂</p>
+        <strong id="spo2">--</strong>
+        <span>%</span>
+        <small>Blood oxygen estimation</small>
+    </div>
+
+    <div class="vital">
+        <div class="sensor-tag">DHT22</div>
+        <p>TEMPERATURE</p>
+        <strong id="temperature">--</strong>
+        <span>°C</span>
+        <small>Temperature sensor</small>
+    </div>
+
+    <div class="vital">
+        <div class="sensor-tag">AD8232</div>
+        <p>ECG SIGNAL</p>
+        <strong id="signalQuality">--</strong>
+        <span>QUALITY</span>
+        <small>Electrical heart signal</small>
+    </div>
+
+</section>
+
+
+<section class="panel ecg-panel">
+
+    <div class="panel-heading">
+        <div>
+            <h2>ECG MONITOR</h2>
+            <p>AD8232 SINGLE-CHANNEL ECG ACQUISITION</p>
+        </div>
+
+        <div class="technical">
+            <span>RATE <b id="sampleRate">250</b> Hz</span>
+            <span>SAMPLES <b id="sampleCount">0</b></span>
+        </div>
+    </div>
+
+    <div class="ecg-screen">
+        <canvas id="ecgCanvas"></canvas>
+        <div class="lead-label">LEAD I • PROTOTYPE</div>
+    </div>
+
+</section>
+
+
+<section class="control-panel">
+
+    <div>
+        <label>RECORDING DURATION</label>
+        <select id="duration">
+            <option value="10">10 Seconds</option>
+            <option value="20">20 Seconds</option>
+            <option value="30">30 Seconds</option>
+        </select>
+    </div>
+
+    <button id="startRecord">START RECORDING</button>
+
+    <button id="stopRecord" disabled>STOP RECORDING</button>
+
+    <button id="reportBtn">GENERATE ECG REPORT</button>
+
+</section>
+
+
+<section class="panel recording-status-panel">
+
+    <div class="panel-heading">
+        <div>
+            <h2>RECORDING STATUS</h2>
+            <p id="recordingStatus">Ready to record</p>
+        </div>
+
+        <strong id="recordingTimer">00:00</strong>
+    </div>
+
+    <div class="progress-container">
+        <div id="recordingProgress"></div>
+    </div>
+
+</section>
+
+
+<section class="panel records">
+
+    <div class="panel-heading">
+        <div>
+            <h2>RECORD HISTORY</h2>
+            <p>Stored measurements from this device</p>
+        </div>
+
+        <b id="recordCount">0 RECORDS</b>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>RECORD ID</th>
+                    <th>DATE / TIME</th>
+                    <th>HEART RATE</th>
+                    <th>SpO₂</th>
+                    <th>TEMP.</th>
+                    <th>ECG SAMPLES</th>
+                </tr>
+            </thead>
+
+            <tbody id="recordsBody"></tbody>
+        </table>
+    </div>
+
+</section>
+
+
+<div class="notice">
+    <b>EXPERIMENTAL PROTOTYPE</b>
+    Healthy Home is an educational electronics and software prototype.
+    Sensor readings and ECG visualization are not a medical diagnosis.
+</div>
 
 </main>
 
@@ -314,5 +191,6 @@
 </footer>
 
 <script src="script.js"></script>
+
 </body>
 </html>
