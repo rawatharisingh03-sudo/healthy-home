@@ -6,6 +6,7 @@ let ecgData = [];
 let recording = false;
 let recordingStart = 0;
 let recordingDuration = 10;
+let recordingTimer = null;
 
 let latest = {
     heartRate: null,
@@ -15,6 +16,7 @@ let latest = {
 
 const canvas = document.getElementById("ecgCanvas");
 const ctx = canvas.getContext("2d");
+
 
 function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
@@ -136,7 +138,6 @@ async function readSerial() {
             }
 
         } catch (error) {
-
             console.error(error);
 
         } finally {
@@ -151,12 +152,6 @@ async function readSerial() {
 function processData(line) {
 
     if (!line) return;
-
-    /*
-      ESP32 expected format:
-
-      {"heartRate":78,"spo2":98,"temperature":36.7,"ecg":512}
-    */
 
     try {
 
@@ -203,7 +198,7 @@ function processData(line) {
 
                 ecgData.push(value);
 
-                if (ecgData.length > 2500) {
+                if (ecgData.length > 5000) {
                     ecgData.shift();
                 }
 
@@ -212,21 +207,11 @@ function processData(line) {
 
                 updateSignal();
                 drawECG();
-
-                if (recording) {
-
-                    const elapsed =
-                        (Date.now() - recordingStart) / 1000;
-
-                    if (elapsed >= recordingDuration) {
-                        stopRecording();
-                    }
-                }
             }
         }
 
     } catch (error) {
-        // Ignore ordinary serial messages.
+        // Ignore non-JSON serial messages.
     }
 }
 
@@ -246,9 +231,9 @@ function updateSignal() {
     let min = Infinity;
     let max = -Infinity;
 
-    data.forEach(v => {
-        if (v < min) min = v;
-        if (v > max) max = v;
+    data.forEach(value => {
+        if (value < min) min = value;
+        if (value > max) max = value;
     });
 
     const range = max - min;
@@ -269,6 +254,8 @@ function drawECG() {
 
     const width = rect.width;
     const height = rect.height;
+
+    if (!width || !height) return;
 
     ctx.clearRect(0, 0, width, height);
 
@@ -329,53 +316,171 @@ function drawECG() {
 }
 
 
+/* ============================
+   AUTOMATIC RECORDING
+   ============================ */
+
 document.getElementById("startRecord")
-    .addEventListener("click", () => {
-
-        recordingDuration =
-            Number(document.getElementById("duration").value);
-
-        ecgData = [];
-
-        document.getElementById("sampleCount")
-            .textContent = "0";
-
-        recording = true;
-        recordingStart = Date.now();
-
-        document.getElementById("startRecord")
-            .disabled = true;
-
-        document.getElementById("stopRecord")
-            .disabled = false;
-    });
+    .addEventListener("click", startRecording);
 
 
 document.getElementById("stopRecord")
-    .addEventListener("click", stopRecording);
+    .addEventListener("click", () => {
+        stopRecording(false);
+    });
 
 
-function stopRecording() {
+function startRecording() {
+
+    if (recording) return;
+
+    recordingDuration =
+        Number(document.getElementById("duration").value);
+
+    if (!Number.isFinite(recordingDuration) ||
+        recordingDuration <= 0) {
+        recordingDuration = 10;
+    }
+
+    /*
+       Start a fresh ECG recording.
+       The live ECG continues to display,
+       but only data received after START
+       is stored in this recording.
+    */
+    ecgData = [];
+
+    document.getElementById("sampleCount").textContent = "0";
+
+    recording = true;
+    recordingStart = Date.now();
+
+    document.getElementById("startRecord").disabled = true;
+    document.getElementById("stopRecord").disabled = false;
+    document.getElementById("duration").disabled = true;
+
+    document.getElementById("recordingStatus").textContent =
+        "Recording in progress...";
+
+    document.getElementById("recordingProgress").style.width = "0%";
+
+    updateRecordingTimer();
+
+    clearInterval(recordingTimer);
+
+    recordingTimer = setInterval(() => {
+
+        const elapsed =
+            (Date.now() - recordingStart) / 1000;
+
+        const percentage =
+            Math.min(
+                100,
+                (elapsed / recordingDuration) * 100
+            );
+
+        document.getElementById("recordingProgress")
+            .style.width = percentage + "%";
+
+        updateRecordingTimer();
+
+        if (elapsed >= recordingDuration) {
+            stopRecording(true);
+        }
+
+    }, 100);
+}
+
+
+function updateRecordingTimer() {
+
+    if (!recording) return;
+
+    const elapsed =
+        Math.min(
+            recordingDuration,
+            (Date.now() - recordingStart) / 1000
+        );
+
+    const seconds = Math.floor(elapsed);
+
+    const minutes =
+        String(Math.floor(seconds / 60)).padStart(2, "0");
+
+    const remainingSeconds =
+        String(seconds % 60).padStart(2, "0");
+
+    document.getElementById("recordingTimer").textContent =
+        `${minutes}:${remainingSeconds}`;
+}
+
+
+function stopRecording(autoStopped = false) {
 
     if (!recording) return;
 
     recording = false;
 
-    document.getElementById("startRecord")
-        .disabled = false;
+    clearInterval(recordingTimer);
+    recordingTimer = null;
 
-    document.getElementById("stopRecord")
-        .disabled = true;
+    document.getElementById("startRecord").disabled = false;
+    document.getElementById("stopRecord").disabled = true;
+    document.getElementById("duration").disabled = false;
+
+    document.getElementById("recordingProgress").style.width = "100%";
+
+    document.getElementById("recordingTimer").textContent =
+        formatDuration(recordingDuration);
+
+    if (autoStopped) {
+        document.getElementById("recordingStatus").textContent =
+            "Recording complete — record saved";
+    } else {
+        document.getElementById("recordingStatus").textContent =
+            "Recording stopped — record saved";
+    }
 
     saveRecord();
+
+    /*
+       Automatically prepare the ECG report after
+       the selected recording duration finishes.
+    */
+    if (autoStopped) {
+        setTimeout(() => {
+            generateReport();
+        }, 300);
+    }
 }
 
+
+function formatDuration(seconds) {
+
+    const totalSeconds = Math.max(
+        0,
+        Math.round(seconds)
+    );
+
+    const minutes =
+        String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+
+    const remainingSeconds =
+        String(totalSeconds % 60).padStart(2, "0");
+
+    return `${minutes}:${remainingSeconds}`;
+}
+
+
+/* ============================
+   SAVE RECORD
+   ============================ */
 
 function saveRecord() {
 
     const patientId =
-        document.getElementById("patientId").value.trim()
-        || "UNKNOWN";
+        document.getElementById("patientId")
+            .value.trim() || "UNKNOWN";
 
     const now = new Date();
 
@@ -391,13 +496,17 @@ function saveRecord() {
 
         date: now.toLocaleString(),
 
+        patientId,
+
         heartRate: latest.heartRate,
         spo2: latest.spo2,
         temperature: latest.temperature,
 
+        duration: recordingDuration,
+
         samples: ecgData.length,
 
-        patientId
+        ecg: [...ecgData]
     };
 
     const records =
@@ -407,9 +516,14 @@ function saveRecord() {
 
     records.unshift(record);
 
+    /*
+       Keep the latest 20 records.
+    */
+    const limitedRecords = records.slice(0, 20);
+
     localStorage.setItem(
         "healthyHomeRecords",
-        JSON.stringify(records)
+        JSON.stringify(limitedRecords)
     );
 
     loadRecords();
@@ -430,15 +544,16 @@ function loadRecords() {
 
     records.forEach(record => {
 
-        const row = document.createElement("tr");
+        const row =
+            document.createElement("tr");
 
         row.innerHTML = `
-            <td>${record.id}</td>
-            <td>${record.date}</td>
+            <td>${escapeHTML(record.id)}</td>
+            <td>${escapeHTML(record.date)}</td>
             <td>${format(record.heartRate)}</td>
             <td>${format(record.spo2)}</td>
-            <td>${format(record.temperature)}</td>
-            <td>${record.samples}</td>
+            <td>${formatTemperature(record.temperature)}</td>
+            <td>${record.samples || 0}</td>
         `;
 
         body.appendChild(row);
@@ -451,11 +566,36 @@ function loadRecords() {
 
 function format(value) {
 
-    if (value === null || value === undefined) {
+    if (value === null ||
+        value === undefined ||
+        !Number.isFinite(Number(value))) {
         return "--";
     }
 
-    return value;
+    return Math.round(Number(value));
+}
+
+
+function formatTemperature(value) {
+
+    if (value === null ||
+        value === undefined ||
+        !Number.isFinite(Number(value))) {
+        return "--";
+    }
+
+    return Number(value).toFixed(1);
+}
+
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
 
 
@@ -470,13 +610,16 @@ document.getElementById("reportBtn")
 function generateReport() {
 
     const patientId =
-        document.getElementById("patientId").value.trim();
+        document.getElementById("patientId")
+            .value.trim();
 
     const patientName =
-        document.getElementById("patientName").value.trim();
+        document.getElementById("patientName")
+            .value.trim();
 
     const age =
-        document.getElementById("patientAge").value.trim();
+        document.getElementById("patientAge")
+            .value.trim();
 
     if (!patientId || !patientName) {
 
@@ -527,7 +670,10 @@ function generateReport() {
 
     if (!report) {
 
-        alert("Allow pop-ups to generate the report.");
+        alert(
+            "Allow pop-ups to generate the report."
+        );
+
         return;
     }
 
@@ -535,7 +681,9 @@ function generateReport() {
 
 <!DOCTYPE html>
 <html>
+
 <head>
+
 <meta charset="UTF-8">
 
 <title>Healthy Home ECG Report</title>
@@ -578,7 +726,6 @@ body {
     background: #f5f7f7;
     display: grid;
     grid-template-columns: repeat(3,1fr);
-    gap: 0;
 }
 
 .info div {
@@ -670,7 +817,7 @@ body {
 <div class="header">
 
 <h1>
-HEALTHY HOME — 10-SECOND ECG REPORT
+HEALTHY HOME — ${recordingDuration}-SECOND ECG REPORT
 </h1>
 
 <p>
@@ -683,19 +830,19 @@ ESP32 BIOMEDICAL MONITORING SYSTEM • EXPERIMENTAL PROTOTYPE
 <div class="info">
 
 <div><b>RECORD ID</b>${reportId}</div>
-<div><b>PATIENT ID</b>${patientId}</div>
-<div><b>PATIENT NAME</b>${patientName}</div>
+<div><b>PATIENT ID</b>${escapeHTML(patientId)}</div>
+<div><b>PATIENT NAME</b>${escapeHTML(patientName)}</div>
 
-<div><b>AGE</b>${age || "--"}</div>
+<div><b>AGE</b>${escapeHTML(age || "--")}</div>
 <div><b>DATE / TIME</b>${now.toLocaleString()}</div>
 <div><b>DEVICE</b>ESP32 + AD8232</div>
 
 <div><b>HEART RATE</b>${format(latest.heartRate)} BPM</div>
 <div><b>SpO₂</b>${format(latest.spo2)} %</div>
-<div><b>TEMPERATURE</b>${format(latest.temperature)} °C</div>
+<div><b>TEMPERATURE</b>${formatTemperature(latest.temperature)} °C</div>
 
 <div><b>SAMPLE RATE</b>250 Hz</div>
-<div><b>DURATION</b>10 Seconds</div>
+<div><b>DURATION</b>${recordingDuration} Seconds</div>
 <div><b>SAMPLES</b>${ecgData.length}</div>
 
 </div>
@@ -718,12 +865,19 @@ ECG RHYTHM STRIP — AD8232
 
 <p>
 Signal Quality:
-<b>${document.getElementById("signalQuality").textContent}</b>
+<b>${escapeHTML(
+    document.getElementById("signalQuality").textContent
+)}</b>
 </p>
 
 <p>
 Sampling Rate:
 <b>250 Hz</b>
+</p>
+
+<p>
+Recorded Duration:
+<b>${recordingDuration} seconds</b>
 </p>
 
 <p>
@@ -738,7 +892,7 @@ Recorded Samples:
 <h2>SYSTEM OBSERVATION</h2>
 
 <p>
-ECG electrical waveform successfully captured by the prototype.
+ECG electrical waveform was captured by the prototype during the selected recording interval.
 </p>
 
 <p>
@@ -769,6 +923,7 @@ window.onload = function() {
 <\/script>
 
 </body>
+
 </html>
 
     `);
@@ -801,7 +956,8 @@ function drawReportGraph(ctx, width, height) {
         ctx.stroke();
     }
 
-    const data = ecgData.slice(-2500);
+    const data =
+        ecgData.slice(-2500);
 
     if (data.length < 2) return;
 
