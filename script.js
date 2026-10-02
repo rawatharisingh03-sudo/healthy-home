@@ -1,4 +1,4 @@
-```javascript
+
 // ==========================================
 // HEALTHY HOME
 // ESP32-S3 HEALTH MONITORING DASHBOARD
@@ -799,4 +799,3 @@ function updateClock() {
   }
 
 }
-```
